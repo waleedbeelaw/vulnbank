@@ -54,10 +54,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      - name: Install Bandit
-        run: pip install bandit
+      - name: Install development dependencies (Bandit)
+        run: pip install -r requirements-dev.txt
 
       - name: Run Bandit SAST against app/ (fail on findings)
         # -r app/ : scan application source only
@@ -80,13 +82,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-      - name: Install project dependencies
-        run: pip install -r requirements.txt
-
-      - name: Install pip-audit
-        run: pip install pip-audit
+      - name: Install development dependencies (pip-audit)
+        run: pip install -r requirements-dev.txt
 
       - name: Run pip-audit SCA on requirements.txt (fail on CVEs)
         # Audit declared dependencies only — not every tool installed on the runner.
@@ -173,3 +174,28 @@ jobs:
             zap-report.json
             zap-report.html
             zap-report.md
+
+  # ---------------------------------------------------------------------------
+  # 6. Container image scanning (Trivy)
+  # ---------------------------------------------------------------------------
+  container-scan:
+    name: PR Security Gate — Container Scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request code
+        uses: actions/checkout@v4
+
+      - name: Build VulnBank Docker image
+        run: docker build -t vulnbank:ci .
+
+      - name: Scan image with Trivy (fail on HIGH or CRITICAL)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: vulnbank:ci
+          scan-type: image
+          scanners: vuln
+          vuln-type: os,library
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
