@@ -28,6 +28,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 | [supply-chain-security.md](supply-chain-security.md) | SBOM generation, supply-chain inventory, and CI artifact retention |
 | [security-logging.md](security-logging.md) | Structured security audit logging and request correlation |
 | [deployment-security.md](deployment-security.md) | Docker/Compose hardening and Checkov IaC scanning |
+| [cicd-security.md](cicd-security.md) | GitHub Actions hardening — permissions, SHA pinning, concurrency |
 | [dast/README.md](dast/README.md) | Dynamic application security testing with OWASP ZAP |
 | [assessment.md](assessment.md) | Step 7 AppSec assessment summary |
 | [remediation.md](remediation.md) | Step 8 remediation summary (all findings **Remediated**) |
@@ -50,7 +51,7 @@ Pull requests targeting `vulnerable-lab` must pass eight checks defined in [`.gi
 | SBOM | Syft (CycloneDX container inventory) |
 | IaC Scan | Checkov (Dockerfile / Compose) |
 
-See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate).
+See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate). CI/CD pipeline hardening (least privilege, SHA-pinned actions, concurrency, timeouts) is documented in [cicd-security.md](cicd-security.md).
 
 ## Quick local verification
 
