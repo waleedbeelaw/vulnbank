@@ -14,7 +14,7 @@ Related: CWE-284 (Improper Access Control), CWE-862 (Missing Authorization)
 
 ## OWASP Category
 
-**OWASP API Security Top 10 — API1:2023 Broken Object Level Authorization (BOLA/IDOR)**
+**OWASP API Security Top 10 - API1:2023 Broken Object Level Authorization (BOLA/IDOR)**
 
 ## Affected Component
 
@@ -41,7 +41,7 @@ def get_account(account_id):
     account = db.session.get(Account, account_id)
     if account is None:
         return jsonify({"error": "account not found"}), 404
-    # Ownership check omitted — returns any account to any authenticated user
+    # Ownership check omitted - returns any account to any authenticated user
     return jsonify(account_to_dict(account)), 200
 ```
 
@@ -91,8 +91,8 @@ HTTP `403 Forbidden`:
 
 | Dimension | Impact |
 |-----------|--------|
-| **Confidentiality** | High — exposure of financial balances and account numbers |
-| **Integrity** | None — read-only access |
+| **Confidentiality** | High - exposure of financial balances and account numbers |
+| **Integrity** | None - read-only access |
 | **Availability** | None |
 
 An attacker can enumerate accounts and harvest financial metadata for all users, supporting fraud planning, targeted social engineering, or further attacks.
@@ -149,12 +149,12 @@ The endpoint still requires JWT authentication via `@jwt_required()`. Nonexisten
 
 The following regression tests confirm the fix:
 
-- `tests/test_auth.py::test_alice_can_access_alice_account` — owner access returns 200
-- `tests/test_auth.py::test_alice_cannot_access_bob_account` — cross-user access returns 403
-- `tests/test_auth.py::test_bob_cannot_access_alice_account` — cross-user access returns 403
-- `tests/test_auth.py::test_get_account_without_token_returns_401` — unauthenticated access rejected
-- `tests/test_accounts_api.py::test_get_account_returns_404_for_nonexistent_account` — missing account returns 404
-- `tests/test_vulnerabilities.py::test_idor_remediation_*` — dedicated remediation regression suite
+- `tests/test_auth.py::test_alice_can_access_alice_account` - owner access returns 200
+- `tests/test_auth.py::test_alice_cannot_access_bob_account` - cross-user access returns 403
+- `tests/test_auth.py::test_bob_cannot_access_alice_account` - cross-user access returns 403
+- `tests/test_auth.py::test_get_account_without_token_returns_401` - unauthenticated access rejected
+- `tests/test_accounts_api.py::test_get_account_returns_404_for_nonexistent_account` - missing account returns 404
+- `tests/test_vulnerabilities.py::test_idor_remediation_*` - dedicated remediation regression suite
 
 Manual retest: Alice requests Bob's account → HTTP 403 `{"error": "Forbidden"}`.
 

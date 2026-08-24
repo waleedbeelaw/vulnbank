@@ -47,7 +47,7 @@ flowchart TB
 | Authentication | JWT (`Authorization: Bearer`) on protected routes |
 | Authorization | Object-level checks (accounts, transactions, users) |
 | Financial integrity | DB transactions, row locking, Decimal types |
-| Secrets | `JWT_SECRET_KEY`, `DATABASE_URL` via environment — not in Git |
+| Secrets | `JWT_SECRET_KEY`, `DATABASE_URL` via environment - not in Git |
 | Audit trail | `vulnbank.security` JSON logger; no passwords/JWTs in logs |
 | Request tracing | `X-Request-ID` (client or server UUID) |
 | Database exposure | Internal Compose network only |
@@ -95,16 +95,16 @@ flowchart LR
 
 | # | Job name | Tool | Primary focus |
 |---|----------|------|---------------|
-| 1 | PR Security Gate — Test Suite (pytest) | pytest | Functional + security regression (125 tests) |
-| 2 | PR Security Gate — SAST (Bandit) | Bandit | Python source anti-patterns |
-| 3 | PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependency CVEs |
-| 4 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks v3 | Git history secrets |
-| 5 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Passive baseline + authenticated regression |
-| 6 | PR Security Gate — Container Scan (Trivy) | Trivy | Fixable HIGH/CRITICAL image CVEs |
-| 7 | PR Security Gate — SBOM (Syft) | Syft | CycloneDX JSON from **built image** |
-| 8 | PR Security Gate — IaC Scan (Checkov) | Checkov | Dockerfile + Compose configuration |
+| 1 | PR Security Gate - Test Suite (pytest) | pytest | Functional + security regression (125 tests) |
+| 2 | PR Security Gate - SAST (Bandit) | Bandit | Python source anti-patterns |
+| 3 | PR Security Gate - SCA (pip-audit) | pip-audit | Declared dependency CVEs |
+| 4 | PR Security Gate - Secret Scan (Gitleaks) | Gitleaks v3 | Git history secrets |
+| 5 | PR Security Gate - DAST (OWASP ZAP) | OWASP ZAP | Passive baseline + authenticated regression |
+| 6 | PR Security Gate - Container Scan (Trivy) | Trivy | Fixable HIGH/CRITICAL image CVEs |
+| 7 | PR Security Gate - SBOM (Syft) | Syft | CycloneDX JSON from **built image** |
+| 8 | PR Security Gate - IaC Scan (Checkov) | Checkov | Dockerfile + Compose configuration |
 
-Pipeline hardening: SHA-pinned actions, workflow `contents: read`, concurrency cancellation, job timeouts — see [cicd-security.md](cicd-security.md).
+Pipeline hardening: SHA-pinned actions, workflow `contents: read`, concurrency cancellation, job timeouts - see [cicd-security.md](cicd-security.md).
 
 Workflow definition: [`.github/workflows/security.yml`](../.github/workflows/security.yml).
 

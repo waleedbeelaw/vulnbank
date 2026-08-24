@@ -20,7 +20,7 @@ The Docker image installs only `requirements.txt`.
 
 The GitHub Actions **Security Pipeline** (`.github/workflows/security.yml`) runs **pip-audit** on every push to `vulnerable-lab` and on pull requests targeting that branch.
 
-The **PR Security Gate — SCA (pip-audit)** job:
+The **PR Security Gate - SCA (pip-audit)** job:
 
 - Installs dependencies from `requirements.txt`
 - Runs `pip-audit -r requirements.txt`
@@ -41,16 +41,16 @@ Use `-r requirements.txt` to audit **project dependencies only**, not every pack
 
 ## When vulnerabilities are found
 
-1. **Identify** — note the package name, installed version, and advisory ID from pip-audit output
-2. **Investigate** — read the advisory; determine whether VulnBank code paths are affected
-3. **Upgrade** — where a fixed version exists, update the minimum version in `requirements.txt`
-4. **Verify** — run `pytest -v` and `pip-audit -r requirements.txt` again
-5. **Document** — significant dependency fixes may be noted in commit messages or security documentation as appropriate
+1. **Identify** - note the package name, installed version, and advisory ID from pip-audit output
+2. **Investigate** - read the advisory; determine whether VulnBank code paths are affected
+3. **Upgrade** - where a fixed version exists, update the minimum version in `requirements.txt`
+4. **Verify** - run `pytest -v` and `pip-audit -r requirements.txt` again
+5. **Document** - significant dependency fixes may be noted in commit messages or security documentation as appropriate
 
 Do not suppress pip-audit findings in CI merely to make the pipeline pass. Prefer upgrading or replacing affected dependencies.
 
 ## Related documentation
 
-- [SECURITY.md](../SECURITY.md) — vulnerability reporting policy
-- [README.md — DevSecOps / CI Security](../README.md#devsecops--ci-security) — full pipeline overview
-- [security/README.md](README.md) — security lifecycle index
+- [SECURITY.md](../SECURITY.md) - vulnerability reporting policy
+- [README.md - DevSecOps / CI Security](../README.md#devsecops--ci-security) - full pipeline overview
+- [security/README.md](README.md) - security lifecycle index

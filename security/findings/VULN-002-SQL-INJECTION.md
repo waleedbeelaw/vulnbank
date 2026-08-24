@@ -12,8 +12,8 @@ Unauthenticated attackers can manipulate SQL query logic to extract user records
 
 ## OWASP Category
 
-**OWASP Top 10 2021 — A03:2021 Injection**  
-**OWASP API Security Top 10 — API8:2023 Security Misconfiguration** (unsafe implementation pattern)
+**OWASP Top 10 2021 - A03:2021 Injection**  
+**OWASP API Security Top 10 - API8:2023 Security Misconfiguration** (unsafe implementation pattern)
 
 ## Affected Component
 
@@ -81,7 +81,7 @@ Only users whose username or email legitimately matches the search term should b
 
 | Dimension | Impact |
 |-----------|--------|
-| **Confidentiality** | Low — exposure of user IDs, usernames, and email addresses |
+| **Confidentiality** | Low - exposure of user IDs, usernames, and email addresses |
 | **Integrity** | None in current implementation (SELECT only) |
 | **Availability** | None |
 
@@ -156,11 +156,11 @@ User input is never embedded in executable SQL. Empty or whitespace-only queries
 
 The following regression tests confirm the fix:
 
-- `tests/test_vulnerabilities.py::test_sql_injection_remediation_payload_does_not_return_all_users` — `' OR '1'='1` returns zero users, not all users
-- `tests/test_vulnerabilities.py::test_sql_injection_remediation_normal_search_by_username` — username search works
-- `tests/test_vulnerabilities.py::test_sql_injection_remediation_search_by_email` — email search works
-- `tests/test_vulnerabilities.py::test_sql_injection_remediation_metacharacters_treated_as_literal` — `%` treated as literal data
-- `tests/test_vulnerabilities.py::test_sql_injection_remediation_empty_query_returns_empty_list` — missing/empty query handled safely
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_payload_does_not_return_all_users` - `' OR '1'='1` returns zero users, not all users
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_normal_search_by_username` - username search works
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_search_by_email` - email search works
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_metacharacters_treated_as_literal` - `%` treated as literal data
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_empty_query_returns_empty_list` - missing/empty query handled safely
 
 Manual retest: `GET /search/users?q=' OR '1'='1` returns `[]` or only literal matches, never all users.
 

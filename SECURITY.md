@@ -31,14 +31,14 @@ Repository administrators should require these exact GitHub Actions check names:
 
 | Status check name |
 |-------------------|
-| PR Security Gate — Test Suite (pytest) |
-| PR Security Gate — SAST (Bandit) |
-| PR Security Gate — SCA (pip-audit) |
-| PR Security Gate — Secret Scan (Gitleaks) |
-| PR Security Gate — DAST (OWASP ZAP) |
-| PR Security Gate — Container Scan (Trivy) |
-| PR Security Gate — SBOM (Syft) |
-| PR Security Gate — IaC Scan (Checkov) |
+| PR Security Gate - Test Suite (pytest) |
+| PR Security Gate - SAST (Bandit) |
+| PR Security Gate - SCA (pip-audit) |
+| PR Security Gate - Secret Scan (Gitleaks) |
+| PR Security Gate - DAST (OWASP ZAP) |
+| PR Security Gate - Container Scan (Trivy) |
+| PR Security Gate - SBOM (Syft) |
+| PR Security Gate - IaC Scan (Checkov) |
 
 These names match the `name:` fields defined in `.github/workflows/security.yml`. After the workflow has run at least once on the branch, they appear under **Settings → Branches → Branch protection rules → Require status checks to pass**.
 
@@ -48,13 +48,13 @@ The following settings are **recommended** for `main` and `vulnerable-lab` in **
 
 | Setting | Recommendation |
 |---------|----------------|
-| **Require a pull request before merging** | Enabled — all changes enter through reviewable PRs |
-| **Require status checks to pass before merging** | Enabled — select all eight **PR Security Gate** checks listed above |
-| **Require branches to be up to date before merging** | Enabled (recommended) — ensures checks ran against the latest base branch |
+| **Require a pull request before merging** | Enabled - all changes enter through reviewable PRs |
+| **Require status checks to pass before merging** | Enabled - select all eight **PR Security Gate** checks listed above |
+| **Require branches to be up to date before merging** | Enabled (recommended) - ensures checks ran against the latest base branch |
 | **Do not merge when checks fail** | Implicit when required checks are configured; a failing Security Pipeline must block merge |
-| **Restrict who can push to matching branches** | Enabled where appropriate — limits direct pushes that bypass PR workflow |
-| **Allow force pushes** | Disabled — prevents rewriting history to skip failed checks |
-| **Allow deletions** | Disabled — prevents accidental branch removal |
+| **Restrict who can push to matching branches** | Enabled where appropriate - limits direct pushes that bypass PR workflow |
+| **Allow force pushes** | Disabled - prevents rewriting history to skip failed checks |
+| **Allow deletions** | Disabled - prevents accidental branch removal |
 
 ### Currently configured
 
@@ -103,7 +103,7 @@ A helpful report should contain:
 | **Steps to reproduce** | Minimal, local reproduction steps |
 | **Expected vs actual behaviour** | What should happen vs what happens |
 | **Impact** | Confidentiality, integrity, or availability effect |
-| **Suggested fix** | Optional — root-cause fix if known |
+| **Suggested fix** | Optional - root-cause fix if known |
 
 Omit real credentials, production URLs, and personal data.
 
@@ -111,10 +111,10 @@ Omit real credentials, production URLs, and personal data.
 
 This project follows a documented security lifecycle:
 
-1. **Assessment** — findings recorded under `security/findings/` and summarised in `security/assessment.md`
-2. **Remediation** — code fixes with root-cause changes, documented in `security/remediation.md` and per-finding reports
-3. **Verification** — pytest regression tests in `tests/test_vulnerabilities.py` and the main test suite
-4. **CI enforcement** — `.github/workflows/security.yml` runs security checks on every PR; with branch protection enabled, failing checks block merge (see [Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates))
+1. **Assessment** - findings recorded under `security/findings/` and summarised in `security/assessment.md`
+2. **Remediation** - code fixes with root-cause changes, documented in `security/remediation.md` and per-finding reports
+3. **Verification** - pytest regression tests in `tests/test_vulnerabilities.py` and the main test suite
+4. **CI enforcement** - `.github/workflows/security.yml` runs security checks on every PR; with branch protection enabled, failing checks block merge (see [Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates))
 
 For dependency vulnerabilities, see [security/dependency-management.md](security/dependency-management.md).
 
@@ -124,7 +124,7 @@ Portfolio documentation: [security/README.md](security/README.md) · [security/t
 
 The `vulnerable-lab` branch **intentionally contained** documented flaws (IDOR, SQL injection, stored XSS, business-logic bypass) for educational purposes. These were assessed in Step 7 and remediated in Step 8. Historical reports remain under `security/findings/` and `security/vulnerabilities/` for learning purposes.
 
-Do not assume every security weakness in Git history represents an unfixed issue in the current code — check `security/remediation.md` and the latest test results first.
+Do not assume every security weakness in Git history represents an unfixed issue in the current code - check `security/remediation.md` and the latest test results first.
 
 ## Scope limitations
 

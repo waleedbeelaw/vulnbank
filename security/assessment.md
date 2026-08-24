@@ -36,14 +36,14 @@ This assessment evaluates the intentionally vulnerable VulnBank fintech API runn
 
 ### Highest-Risk Issue
 
-**VULN-004 (Business Logic — Micro-Transfer Solvency Bypass)** presents the greatest integrity risk. An authenticated user can initiate transfers below £1,000 without sufficient funds, causing negative source balances and unbacked credits to recipient accounts. In a fintech context, this directly violates the core invariant that `source balance >= transfer amount`.
+**VULN-004 (Business Logic - Micro-Transfer Solvency Bypass)** presents the greatest integrity risk. An authenticated user can initiate transfers below £1,000 without sufficient funds, causing negative source balances and unbacked credits to recipient accounts. In a fintech context, this directly violates the core invariant that `source balance >= transfer amount`.
 
 ### Major Security Themes
 
-1. **Authentication without authorisation (VULN-001)** — JWT proves identity on `GET /accounts/<id>` but the endpoint does not verify object ownership, demonstrating that authentication and authorisation are separate controls.
-2. **Unsafe SQL construction (VULN-002)** — A dedicated search endpoint bypasses the otherwise consistent SQLAlchemy ORM pattern by concatenating user input into SQL.
-3. **Unencoded HTML output (VULN-003)** — User-controlled `display_name` flows from input → database → HTML response without encoding.
-4. **Incomplete business rule enforcement (VULN-004)** — Transaction logic applies insufficient funds checks only above an arbitrary threshold.
+1. **Authentication without authorisation (VULN-001)** - JWT proves identity on `GET /accounts/<id>` but the endpoint does not verify object ownership, demonstrating that authentication and authorisation are separate controls.
+2. **Unsafe SQL construction (VULN-002)** - A dedicated search endpoint bypasses the otherwise consistent SQLAlchemy ORM pattern by concatenating user input into SQL.
+3. **Unencoded HTML output (VULN-003)** - User-controlled `display_name` flows from input → database → HTML response without encoding.
+4. **Incomplete business rule enforcement (VULN-004)** - Transaction logic applies insufficient funds checks only above an arbitrary threshold.
 
 ### Positive Observations (Controls Working as Expected)
 
@@ -159,9 +159,9 @@ Authorization: Bearer <alice_token>
 |---|---|
 | **Expected (secure)** | `403 {"error": "Forbidden"}` |
 | **Observed** | `200` with Bob's account JSON including `balance`, `account_number`, `user_id` |
-| **Result** | **FAIL — VULN-001 confirmed** |
+| **Result** | **FAIL - VULN-001 confirmed** |
 
-**Analysis:** Authentication answers *"Who are you?"* (Alice is logged in). Authorisation answers *"Are you allowed to access account 2?"* (No — but the endpoint does not enforce this).
+**Analysis:** Authentication answers *"Who are you?"* (Alice is logged in). Authorisation answers *"Are you allowed to access account 2?"* (No - but the endpoint does not enforce this).
 
 #### AUTHZ-02: Access another user's transaction history
 
@@ -174,7 +174,7 @@ Authorization: Bearer <alice_token>
 |---|---|
 | **Expected** | `403` |
 | **Observed** | `403 {"error": "Forbidden"}` |
-| **Result** | PASS — ownership check present on this endpoint |
+| **Result** | PASS - ownership check present on this endpoint |
 
 #### AUTHZ-03: Transfer from another user's account
 
@@ -220,7 +220,7 @@ Authorization: Bearer <token>
 | | |
 |---|---|
 | **Expected** | `400` |
-| **Observed** | `400` — "amount must be greater than zero" |
+| **Observed** | `400` - "amount must be greater than zero" |
 | **Result** | PASS |
 
 #### INPUT-03: Zero amount
@@ -257,7 +257,7 @@ GET /search/users?q=' OR '1'='1
 |---|---|
 | **Expected (secure)** | Only users matching literal search term; injection has no effect |
 | **Observed** | All users returned (boolean condition makes WHERE clause always true) |
-| **Result** | **FAIL — VULN-002 confirmed** |
+| **Result** | **FAIL - VULN-002 confirmed** |
 
 **Root cause:** The `q` parameter is embedded via f-string into:
 
@@ -286,7 +286,7 @@ GET /search/users?q=alice
 
 #### XSS-01: Stored XSS in profile
 
-**Step 1 — Store payload (source):**
+**Step 1 - Store payload (source):**
 
 ```http
 PUT /users/me/profile
@@ -298,9 +298,9 @@ Content-Type: application/json
 
 | | |
 |---|---|
-| **Observed** | `200` — payload stored in `users.display_name` |
+| **Observed** | `200` - payload stored in `users.display_name` |
 
-**Step 2 — Trigger rendering (sink):**
+**Step 2 - Trigger rendering (sink):**
 
 ```http
 GET /profile/1/view
@@ -310,7 +310,7 @@ GET /profile/1/view
 |---|---|
 | **Expected (secure)** | HTML-encoded output: `&lt;script&gt;...` |
 | **Observed** | Raw `<script>alert("VulnBank XSS")</script>` in HTML body |
-| **Result** | **FAIL — VULN-003 confirmed** |
+| **Result** | **FAIL - VULN-003 confirmed** |
 
 **Data flow:** Input (`PUT /users/me/profile`) → Storage (`users.display_name`) → Sink (`GET /profile/<id>/view` renders via f-string into HTML).
 
@@ -320,7 +320,7 @@ GET /profile/1/view
 
 ### Business Logic Tests
 
-#### BL-01: Insufficient funds — large transfer (≥ £1000)
+#### BL-01: Insufficient funds - large transfer (≥ £1000)
 
 Alice balance: £100.00. Transfer: £1500.00.
 
@@ -328,17 +328,17 @@ Alice balance: £100.00. Transfer: £1500.00.
 |---|---|
 | **Expected** | `400 {"error": "insufficient funds"}` |
 | **Observed** | `400 insufficient funds` |
-| **Result** | PASS — check applies at ≥ £1000 |
+| **Result** | PASS - check applies at ≥ £1000 |
 
-#### BL-02: Insufficient funds — micro transfer (< £1000)
+#### BL-02: Insufficient funds - micro transfer (< £1000)
 
 Alice balance: £100.00. Transfer: £500.00.
 
 | | |
 |---|---|
 | **Expected (secure)** | `400 {"error": "insufficient funds"}` |
-| **Observed** | `201 Created` — Alice balance becomes `-400.00`, Bob receives £500 |
-| **Result** | **FAIL — VULN-004 confirmed** |
+| **Observed** | `201 Created` - Alice balance becomes `-400.00`, Bob receives £500 |
+| **Result** | **FAIL - VULN-004 confirmed** |
 
 **Violated invariant:** `source balance >= transaction amount`
 
@@ -366,14 +366,14 @@ Detailed reports: `security/findings/VULN-00x-*.md`
 
 Supporting artefacts:
 
-- `security/test-matrix.md` — full test matrix
-- `security/vulnerabilities/` — original lab introduction notes
-- `tests/test_vulnerabilities.py` — automated PoC tests
+- `security/test-matrix.md` - full test matrix
+- `security/vulnerabilities/` - original lab introduction notes
+- `tests/test_vulnerabilities.py` - automated PoC tests
 
 ---
 
 ## Conclusion
 
-The VulnBank `vulnerable-lab` branch contains **four confirmed security vulnerabilities** spanning authorisation, injection, output encoding, and business logic. The application's secure baseline demonstrates good practices in JWT handling, password storage, ORM usage (except search), and most ownership checks — making the remaining gaps suitable for targeted remediation in Step 8.
+The VulnBank `vulnerable-lab` branch contains **four confirmed security vulnerabilities** spanning authorisation, injection, output encoding, and business logic. The application's secure baseline demonstrates good practices in JWT handling, password storage, ORM usage (except search), and most ownership checks - making the remaining gaps suitable for targeted remediation in Step 8.
 
 No application code was modified during this assessment.

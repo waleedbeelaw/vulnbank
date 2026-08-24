@@ -14,8 +14,8 @@ Specifically: **CWE-80** (Improper Neutralization of Script-Related HTML Tags in
 
 ## OWASP Category
 
-**OWASP Top 10 2021 — A03:2021 Injection (XSS)**  
-**OWASP API Security Top 10 — API8:2023 Security Misconfiguration**
+**OWASP Top 10 2021 - A03:2021 Injection (XSS)**  
+**OWASP API Security Top 10 - API8:2023 Security Misconfiguration**
 
 ## Affected Component
 
@@ -42,13 +42,13 @@ Authenticated users can set an arbitrary `display_name` value that is persisted 
 
 ## Root Cause
 
-**Source** — no input sanitisation:
+**Source** - no input sanitisation:
 
 ```python
 user.display_name = data.get("display_name", "")
 ```
 
-**Sink** — f-string HTML construction without escaping:
+**Sink** - f-string HTML construction without escaping:
 
 ```python
 html = f"<html><body><h1>{name}</h1><p>Profile for user {user.username}</p></body></html>"
@@ -64,7 +64,7 @@ The application treats attacker-controlled data as HTML markup rather than text 
 
 ## Proof of Concept
 
-**Step 1 — Store payload:**
+**Step 1 - Store payload:**
 
 ```powershell
 Invoke-RestMethod -Uri "http://127.0.0.1:5000/users/me/profile" -Method PUT `
@@ -73,7 +73,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:5000/users/me/profile" -Method PUT `
   -Body '{"display_name":"<script>alert(\"VulnBank XSS\")</script>"}'
 ```
 
-**Step 2 — View profile (in browser or via request):**
+**Step 2 - View profile (in browser or via request):**
 
 ```
 http://127.0.0.1:5000/profile/1/view
@@ -103,8 +103,8 @@ No JavaScript execution should occur.
 
 | Dimension | Impact |
 |-----------|--------|
-| **Confidentiality** | Low — potential access to page content/cookies depending on browser context |
-| **Integrity** | Low — ability to modify page DOM, perform actions as victim |
+| **Confidentiality** | Low - potential access to page content/cookies depending on browser context |
+| **Integrity** | Low - ability to modify page DOM, perform actions as victim |
 | **Availability** | None |
 
 This lab PoC uses `alert()` only. Stored XSS in fintech applications could enable session token theft, fraudulent actions, or phishing content injection.
@@ -160,17 +160,17 @@ html = render_template_string(
 )
 ```
 
-Input storage is unchanged — legitimate display names including `<`, `>`, quotes, and ampersands are stored as provided. Output encoding at the sink prevents script execution.
+Input storage is unchanged - legitimate display names including `<`, `>`, quotes, and ampersands are stored as provided. Output encoding at the sink prevents script execution.
 
 ## Verification
 
 The following regression tests confirm the fix:
 
-- `tests/test_vulnerabilities.py::test_xss_remediation_payload_is_html_escaped` — `<script>alert(...)</script>` rendered as encoded text, not executable markup
-- `tests/test_vulnerabilities.py::test_xss_remediation_normal_display_name_renders` — normal names display correctly (with encoding where needed)
-- `tests/test_vulnerabilities.py::test_xss_remediation_quotes_and_special_characters_safe` — quotes and special characters handled safely
+- `tests/test_vulnerabilities.py::test_xss_remediation_payload_is_html_escaped` - `<script>alert(...)</script>` rendered as encoded text, not executable markup
+- `tests/test_vulnerabilities.py::test_xss_remediation_normal_display_name_renders` - normal names display correctly (with encoding where needed)
+- `tests/test_vulnerabilities.py::test_xss_remediation_quotes_and_special_characters_safe` - quotes and special characters handled safely
 
-Manual retest: store XSS payload via `PUT /users/me/profile`, view via `GET /profile/<id>/view` — response contains `&lt;script&gt;...` not raw `<script>`.
+Manual retest: store XSS payload via `PUT /users/me/profile`, view via `GET /profile/<id>/view` - response contains `&lt;script&gt;...` not raw `<script>`.
 
 ## Status
 

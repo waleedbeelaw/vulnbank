@@ -57,7 +57,7 @@ If account `2` belongs to Bob, Alice receives Bob's account JSON including balan
 
 ## OWASP Category
 
-- [OWASP API Security Top 10 — API1:2023 Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
+- [OWASP API Security Top 10 - API1:2023 Broken Object Level Authorization](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
 
 ## Remediation
 
