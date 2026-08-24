@@ -118,6 +118,8 @@ This project follows a documented security lifecycle:
 
 For dependency vulnerabilities, see [security/dependency-management.md](security/dependency-management.md).
 
+Portfolio documentation: [security/README.md](security/README.md) · [security/threat-model.md](security/threat-model.md) · [security/architecture.md](security/architecture.md) · [security/security-journey.md](security/security-journey.md) · [security/control-matrix.md](security/control-matrix.md).
+
 ## Intentional lab vulnerabilities
 
 The `vulnerable-lab` branch **intentionally contained** documented flaws (IDOR, SQL injection, stored XSS, business-logic bypass) for educational purposes. These were assessed in Step 7 and remediated in Step 8. Historical reports remain under `security/findings/` and `security/vulnerabilities/` for learning purposes.

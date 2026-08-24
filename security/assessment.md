@@ -1,5 +1,7 @@
 # VulnBank Application Security Assessment
 
+> **Historical document:** This assessment reflects the **`vulnerable-lab` branch at Step 7** (August 2026). Test counts and vulnerability status below are frozen at assessment time. Current state: all four findings remediated; **125 pytest tests** pass. See [remediation.md](remediation.md) and [threat-model.md](threat-model.md).
+
 **Branch:** `vulnerable-lab`  
 **Assessment date:** 24 August 2026  
 **Assessor role:** Application Security Engineering review  
