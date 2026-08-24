@@ -6,13 +6,15 @@ VulnBank depends on third-party Python packages (Flask, SQLAlchemy, PyJWT, etc.)
 
 ## Project dependencies
 
-Runtime and test dependencies are declared in [`requirements.txt`](../requirements.txt) at the repository root. Install them with:
+Runtime application dependencies are declared in [`requirements.txt`](../requirements.txt). Development and CI security tooling (`bandit`, `pip-audit`, `pytest`) are in [`requirements-dev.txt`](../requirements-dev.txt), which is **not** installed in the Docker image.
+
+Install for local development and security checks:
 
 ```powershell
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
-Security tooling used in CI (`bandit`, `pip-audit`) is also listed there for consistent local and pipeline runs.
+The Docker image installs only `requirements.txt`.
 
 ## Automated scanning (CI)
 
@@ -31,8 +33,7 @@ This prevents merging changes that introduce vulnerable package versions.
 Run the same check locally before opening a pull request:
 
 ```powershell
-pip install -r requirements.txt
-pip install pip-audit
+pip install -r requirements-dev.txt
 pip-audit -r requirements.txt
 ```
 

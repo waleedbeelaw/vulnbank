@@ -74,6 +74,58 @@ python run.py
 
 The API will be available at `http://127.0.0.1:5000`.
 
+## Docker
+
+Run VulnBank with Docker Compose (requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine + Compose).
+
+### Prerequisites
+
+- Docker with Compose v2
+- Port `5000` available on localhost
+
+### Quick start (one command)
+
+```powershell
+docker compose up --build
+```
+
+The entrypoint runs `init_db.py` automatically after PostgreSQL is healthy. Verify:
+
+```powershell
+curl http://localhost:5000/health
+```
+
+Expected: `{"status":"healthy"}`
+
+### Step-by-step (explicit database init)
+
+```powershell
+docker compose up -d db
+docker compose run --rm app python init_db.py
+docker compose up app
+```
+
+### Stop containers
+
+```powershell
+docker compose down
+```
+
+### Reset development database
+
+Removes the PostgreSQL volume and all container data:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+### Development-only credentials
+
+`docker-compose.yml` uses fake credentials (`vulnbank-dev-password`, `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host — only the app port `5000` is published.
+
+See [security/container-security.md](security/container-security.md) for container security decisions.
+
 ## Run tests
 
 ```powershell
@@ -93,10 +145,12 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | Dependency Vulnerability Scan | pip-audit | Check declared dependencies in `requirements.txt` against known CVEs |
 | Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
 | DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
+| Container Scan | Trivy | Scan the built Docker image for HIGH/CRITICAL vulnerabilities |
 
 Run the same checks locally:
 
 ```powershell
+pip install -r requirements-dev.txt
 pytest -v
 bandit -r app/ -ll
 pip-audit -r requirements.txt
@@ -111,7 +165,7 @@ VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab`
 - **Pushes** to `vulnerable-lab`
 - **Pull requests** targeting `vulnerable-lab`
 
-Each pull request should pass all five security checks before it is considered approved for merge:
+Each pull request should pass all six security checks before it is considered approved for merge:
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
@@ -120,6 +174,7 @@ Each pull request should pass all five security checks before it is considered a
 | PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
+| PR Security Gate — Container Scan (Trivy) | Trivy | HIGH/CRITICAL vulnerabilities in the built application image |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
