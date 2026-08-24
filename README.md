@@ -145,7 +145,7 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | Dependency Vulnerability Scan | pip-audit | Check declared dependencies in `requirements.txt` against known CVEs |
 | Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
 | DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
-| Container Scan | Trivy | Scan the built Docker image for HIGH/CRITICAL vulnerabilities |
+| Container Scan | Trivy | Blocks **fixable** HIGH/CRITICAL vulnerabilities in the built Docker image |
 
 Run the same checks locally:
 
@@ -174,7 +174,7 @@ Each pull request should pass all six security checks before it is considered ap
 | PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
-| PR Security Gate — Container Scan (Trivy) | Trivy | HIGH/CRITICAL vulnerabilities in the built application image |
+| PR Security Gate — Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 

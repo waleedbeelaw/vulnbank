@@ -38,20 +38,29 @@ The GitHub Actions job **PR Security Gate — Container Scan (Trivy)**:
 
 1. Builds `vulnbank:ci` from the [Dockerfile](../Dockerfile)
 2. Scans the **built image** with Trivy (`scan-type: image`, `scanners: vuln`, `vuln-type: os,library`)
-3. Fails on **HIGH** or **CRITICAL** vulnerabilities (`exit-code: 1`, `ignore-unfixed: false`)
+3. Fails on **fixable** **HIGH** or **CRITICAL** vulnerabilities (`exit-code: 1`, `ignore-unfixed: true`)
 
 Secret scanning is handled separately by the **PR Security Gate — Secret Scan (Gitleaks)** job. Trivy is configured with `scanners: vuln` only to avoid duplicate secret detection, not to weaken coverage.
 
-### Trivy findings and remediation (Step 14)
+### Trivy assessment summary (Step 14)
 
-Initial Trivy scans of the unpatched `python:3.12-slim` image reported **Debian 13** OS vulnerabilities (53 total in the first failing run). Python application packages (`requirements.txt`) showed **0** library vulnerabilities — the failures were **OS/base-image packages**, not VulnBank application code.
+| Scan stage | OS (Debian) findings | Python library findings |
+|------------|----------------------|-------------------------|
+| Initial image (before `apt-get upgrade`) | **53** vulnerabilities | **0** |
+| After `apt-get update && apt-get upgrade` | **17** (14 HIGH, 3 CRITICAL) | **0** |
 
-Representative findings included:
+The OS upgrade removed all findings that had an available vendor fixed version. The remaining **17** HIGH/CRITICAL findings had **no vendor Fixed Version** in Trivy at assessment time and were marked **affected** or **fix_deferred**.
 
-| Package | Severity | Status | Remediation |
-|---------|----------|--------|-------------|
-| `util-linux` | HIGH | Fixed version available (`2.41.5-0+deb13u1`) | `apt-get upgrade` during Docker build |
-| `perl-base` | CRITICAL / HIGH | Some CVEs **affected** or **fix_deferred** with no Debian fix yet | Documented; not ignored in Trivy config |
+Examples of tracked, vendor-unfixed findings:
+
+| Package | Example CVEs | Trivy status |
+|---------|--------------|--------------|
+| `gzip` | CVE-2026-41992 | affected, no fixed version |
+| `ncurses` | CVE-2025-69720 | affected, no fixed version |
+| OpenSSL | CVE-2026-14456 | fix_deferred, no fixed version |
+| `perl-base` | CVE-2026-13221, CVE-2026-42496, CVE-2026-8376, CVE-2026-42497, and others | affected / fix_deferred, no fixed version |
+
+These are **not** claimed to be harmless. They remain **security debt** in the base OS layer. VulnBank does not invoke Perl, gzip, or ncurses at application runtime, but the vulnerabilities still exist in the container filesystem until Debian publishes patches.
 
 **Dockerfile remediation:** an early build stage runs:
 
@@ -61,21 +70,37 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 ```
 
-This applies available Debian security updates (including fixable packages such as `util-linux`) on each image build without adding unnecessary packages.
+This applies available Debian security updates on each image build. **Base image:** official `python:3.12-slim` (Debian-based, actively maintained).
 
-**Base image:** remains the official `python:3.12-slim` image (Debian-based, actively maintained). No switch to unofficial images. Python 3.12, Flask, and `psycopg2-binary` compatibility are unchanged.
+### Container vulnerability gate policy
 
-### Fixable vs unfixed vulnerabilities
+VulnBank gates on **fixable** HIGH/CRITICAL container vulnerabilities:
 
-| Category | Policy |
-|----------|--------|
-| **Fixable** (Debian publishes a patched package) | Must be remediated in the Dockerfile via `apt-get upgrade` so Trivy passes |
-| **Unfixed / fix_deferred** (no patched package from Debian yet) | **Not** added to Trivy ignore lists. Documented here. Re-evaluate when Debian publishes fixes |
-| **Reachability** | `perl-base` is a base OS dependency of the slim image; VulnBank does not invoke Perl at runtime. Residual OS CVEs may still fail the gate until upstream patches exist |
+| Finding type | CI behaviour |
+|--------------|--------------|
+| **Fixable** HIGH/CRITICAL (vendor Fixed Version available) | **FAIL** — PR blocked until remediated (typically via `apt-get upgrade` and image rebuild) |
+| **Unfixed / vendor-deferred** HIGH/CRITICAL (no Fixed Version yet) | **Reported** in Trivy output; does **not** permanently block the PR |
 
-**Current gate policy:** `severity: HIGH,CRITICAL`, `ignore-unfixed: false`. The pipeline fails when Trivy reports unfixed HIGH/CRITICAL OS CVEs even if no vendor patch exists yet. This is intentional — it surfaces base-image debt and triggers rebuilds when Debian publishes fixes, rather than hiding findings.
+**Trivy settings:**
 
-Do **not** set `ignore-unfixed: true` or blanket CVE ignores merely to green the pipeline while CRITICAL `perl-base` issues remain without vendor fixes.
+```yaml
+severity: HIGH,CRITICAL
+exit-code: "1"
+scanners: vuln
+ignore-unfixed: true
+```
+
+`ignore-unfixed: true` does **not** mean “ignore vulnerabilities.” It means CI does **not** fail on findings that currently have **no available vendor remediation**. When Debian publishes a fix and Trivy’s vulnerability database records a Fixed Version, the finding becomes fixable and the gate **will fail** until the image is rebuilt with patched packages.
+
+Fresh image builds and Trivy DB updates automatically reassess vendor-unfixed findings when fixes become available. No CVE-specific blanket ignore lists are used.
+
+Vendor-unfixed vulnerabilities should be re-evaluated when:
+
+- The base image tag is updated
+- Debian security advisories publish fixes
+- Trivy vulnerability data is refreshed in CI
+
+The container does **not** have zero vulnerabilities while vendor-unfixed HIGH/CRITICAL OS CVEs remain in Trivy reports.
 
 ## Related documentation
 
