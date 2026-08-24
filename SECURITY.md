@@ -19,7 +19,7 @@ VulnBank is an **educational Application Security / DevSecOps portfolio project*
 | `main` | Secure baseline reference |
 | `vulnerable-lab` | Full lab history: vulnerability introduction → assessment → remediation → CI security gates |
 
-Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM, Checkov) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md).
+Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM, Checkov) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md). CI/CD hardening details: [security/cicd-security.md](security/cicd-security.md).
 
 ## Branch Protection and Security Gates
 

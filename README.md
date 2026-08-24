@@ -149,6 +149,8 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | SBOM | Syft (Anchore SBOM Action) | Generates and validates a CycloneDX inventory from the built container image |
 | IaC / configuration scanning | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment settings |
 
+The workflow itself is hardened for CI/CD security: least-privilege `GITHUB_TOKEN` permissions, immutable third-party action SHA pinning, checkout credential minimisation, concurrency cancellation, and job timeouts. See [security/cicd-security.md](security/cicd-security.md).
+
 Structured **security audit logging** (JSON events, request correlation IDs) is implemented in the application and verified by the existing pytest gate. See [security/security-logging.md](security/security-logging.md).
 
 See [security/deployment-security.md](security/deployment-security.md) for Docker/Compose hardening and Checkov scope.
@@ -207,6 +209,7 @@ VulnBank documents its security governance alongside technical controls:
 | [security/supply-chain-security.md](security/supply-chain-security.md) | SBOM generation (Syft/CycloneDX), supply-chain controls, and CI artifacts |
 | [security/security-logging.md](security/security-logging.md) | Structured security audit logging, request IDs, and sensitive-data policy |
 | [security/deployment-security.md](security/deployment-security.md) | Docker/Compose hardening and Checkov IaC scanning |
+| [security/cicd-security.md](security/cicd-security.md) | GitHub Actions pipeline hardening and Dependabot strategy |
 | [security/assessment.md](security/assessment.md) | Step 7 application security assessment |
 | [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
 | [security/README.md](security/README.md) | Security documentation index and lifecycle overview |
