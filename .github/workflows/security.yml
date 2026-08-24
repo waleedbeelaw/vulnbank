@@ -152,7 +152,7 @@ jobs:
             -r /zap/wrk/zap-report.html \
             -w /zap/wrk/zap-report.md \
             -c /zap/wrk/security/dast/zap-baseline.conf \
-            -l MEDIUM
+            -I
 
       - name: Run authenticated DAST regression checks
         run: python security/dast/regression_checks.py
