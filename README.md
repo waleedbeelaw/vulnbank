@@ -148,6 +148,8 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | Container Scan | Trivy | Blocks **fixable** HIGH/CRITICAL vulnerabilities in the built Docker image |
 | SBOM | Syft (Anchore SBOM Action) | Generates and validates a CycloneDX inventory from the built container image |
 
+Structured **security audit logging** (JSON events, request correlation IDs) is implemented in the application and verified by the existing pytest gate. See [security/security-logging.md](security/security-logging.md).
+
 See [security/supply-chain-security.md](security/supply-chain-security.md) for SBOM purpose, CI flow, and limitations.
 
 Run the same checks locally:
@@ -172,7 +174,7 @@ Each pull request should pass all seven security checks before it is considered 
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
-| PR Security Gate — Test Suite (pytest) | pytest | Functional behaviour and security regression tests (107 tests) |
+| PR Security Gate — Test Suite (pytest) | pytest | Functional behaviour, security regression, and audit-logging tests |
 | PR Security Gate — SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
 | PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
@@ -197,6 +199,7 @@ VulnBank documents its security governance alongside technical controls:
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting, responsible disclosure, and project scope |
 | [security/dependency-management.md](security/dependency-management.md) | Dependency scanning with pip-audit and upgrade workflow |
 | [security/supply-chain-security.md](security/supply-chain-security.md) | SBOM generation (Syft/CycloneDX), supply-chain controls, and CI artifacts |
+| [security/security-logging.md](security/security-logging.md) | Structured security audit logging, request IDs, and sensitive-data policy |
 | [security/assessment.md](security/assessment.md) | Step 7 application security assessment |
 | [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
 | [security/README.md](security/README.md) | Security documentation index and lifecycle overview |

@@ -5,6 +5,8 @@ import jwt
 from flask import current_app, g, jsonify, request
 from jwt.exceptions import InvalidTokenError
 
+from app.security_logging import log_security_event
+
 INVALID_CREDENTIALS_RESPONSE = {"error": "Invalid credentials"}
 AUTHENTICATION_REQUIRED_RESPONSE = {"error": "Authentication required"}
 FORBIDDEN_RESPONSE = {"error": "Forbidden"}
@@ -34,10 +36,20 @@ def jwt_required():
         def wrapper(*args, **kwargs):
             auth_header = request.headers.get("Authorization")
             if not auth_header:
+                log_security_event(
+                    "auth.unauthenticated",
+                    outcome="denied",
+                    reason="missing_authorization_header",
+                )
                 return jsonify(AUTHENTICATION_REQUIRED_RESPONSE), 401
 
             parts = auth_header.split()
             if len(parts) != 2 or parts[0].lower() != "bearer":
+                log_security_event(
+                    "auth.token.invalid",
+                    outcome="denied",
+                    reason="malformed_authorization_header",
+                )
                 return jsonify(AUTHENTICATION_REQUIRED_RESPONSE), 401
 
             try:
@@ -48,11 +60,26 @@ def jwt_required():
                 )
                 user_id = payload.get("sub")
                 if user_id is None:
+                    log_security_event(
+                        "auth.token.invalid",
+                        outcome="denied",
+                        reason="missing_subject",
+                    )
                     return jsonify(AUTHENTICATION_REQUIRED_RESPONSE), 401
                 g.current_user_id = int(user_id)
             except jwt.ExpiredSignatureError:
+                log_security_event(
+                    "auth.token.invalid",
+                    outcome="denied",
+                    reason="expired",
+                )
                 return jsonify(AUTHENTICATION_REQUIRED_RESPONSE), 401
             except (InvalidTokenError, ValueError, TypeError):
+                log_security_event(
+                    "auth.token.invalid",
+                    outcome="denied",
+                    reason="invalid",
+                )
                 return jsonify(AUTHENTICATION_REQUIRED_RESPONSE), 401
 
             return view_func(*args, **kwargs)

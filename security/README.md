@@ -26,6 +26,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 | [dependency-management.md](dependency-management.md) | Dependency scanning with pip-audit |
 | [container-security.md](container-security.md) | Docker container security decisions |
 | [supply-chain-security.md](supply-chain-security.md) | SBOM generation, supply-chain inventory, and CI artifact retention |
+| [security-logging.md](security-logging.md) | Structured security audit logging and request correlation |
 | [dast/README.md](dast/README.md) | Dynamic application security testing with OWASP ZAP |
 | [assessment.md](assessment.md) | Step 7 AppSec assessment summary |
 | [remediation.md](remediation.md) | Step 8 remediation summary (all findings **Remediated**) |

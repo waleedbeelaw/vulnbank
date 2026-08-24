@@ -16,6 +16,11 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
+    from app.security_logging import configure_security_logging, register_request_id_hooks
+
+    configure_security_logging(app)
+    register_request_id_hooks(app)
+
     # Import models so SQLAlchemy registers them before create_all().
     from app import models  # noqa: F401
 
