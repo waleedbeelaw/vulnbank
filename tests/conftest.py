@@ -29,6 +29,31 @@ CHARLIE = {
     "password": "example-password",
 }
 
+# vulnerable-lab branch: xfail secure tests that conflict with intentional flaws
+VULNERABLE_LAB = True
+VULNERABLE_LAB_XFAIL_TESTS = {
+    "test_alice_cannot_access_bob_account",
+    "test_bob_cannot_access_alice_account",
+    "test_insufficient_funds_rejected",
+    "test_failed_transfer_does_not_modify_source_balance",
+    "test_failed_transfer_does_not_modify_destination_balance",
+    "test_failed_transfer_does_not_create_record",
+}
+
+
+def pytest_collection_modifyitems(config, items):
+    if not VULNERABLE_LAB:
+        return
+
+    for item in items:
+        if item.name in VULNERABLE_LAB_XFAIL_TESTS:
+            item.add_marker(
+                pytest.mark.xfail(
+                    reason="Intentional vulnerability on vulnerable-lab branch",
+                    strict=False,
+                )
+            )
+
 
 @pytest.fixture
 def app():

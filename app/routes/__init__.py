@@ -18,6 +18,8 @@ def health():
 def register_blueprints(app):
     from app.routes.accounts import accounts_bp
     from app.routes.auth import auth_bp
+    from app.routes.profile import profile_bp
+    from app.routes.search import search_bp
     from app.routes.transactions import transactions_bp
     from app.routes.users import users_bp
 
@@ -26,3 +28,5 @@ def register_blueprints(app):
     app.register_blueprint(users_bp)
     app.register_blueprint(accounts_bp)
     app.register_blueprint(transactions_bp)
+    app.register_blueprint(search_bp)
+    app.register_blueprint(profile_bp)

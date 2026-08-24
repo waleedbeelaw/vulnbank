@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from flask import Blueprint, jsonify, request
 
-from app.auth import FORBIDDEN_RESPONSE, get_current_user_id, jwt_required
+from app.auth import get_current_user_id, jwt_required
 from app.extensions import db
 from app.models import Account, User
 from app.serializers import account_exists_checker, account_to_dict, transaction_to_dict
@@ -39,8 +39,10 @@ def get_account(account_id):
     if account is None:
         return jsonify({"error": "account not found"}), 404
 
-    if account.user_id != get_current_user_id():
-        return jsonify(FORBIDDEN_RESPONSE), 403
+    # INTENTIONAL VULNERABILITY FOR LOCAL APPSEC LAB:
+    # This endpoint intentionally omits object-level authorization.
+    # Authentication is required, but ownership is not verified.
+    # It will be remediated in a later step.
 
     return jsonify(account_to_dict(account)), 200
 
