@@ -1,6 +1,7 @@
 import re
 import secrets
 import string
+from decimal import Decimal, InvalidOperation
 
 SUPPORTED_CURRENCIES = {"GBP", "EUR", "USD"}
 USERNAME_MAX_LENGTH = 80
@@ -75,6 +76,62 @@ def validate_account_payload(data):
         errors.append("currency must be one of: GBP, EUR, USD")
 
     return errors
+
+
+def validate_transaction_payload(data):
+    """Validate transfer input and return (errors, parsed_payload)."""
+    errors = []
+
+    if data is None:
+        return ["Request body must be JSON"], None
+
+    from_account_id = data.get("from_account_id")
+    to_account_id = data.get("to_account_id")
+    amount = data.get("amount")
+    currency = data.get("currency")
+
+    if from_account_id is None:
+        errors.append("from_account_id is required")
+    if to_account_id is None:
+        errors.append("to_account_id is required")
+    if _is_missing(amount):
+        errors.append("amount is required")
+    if _is_missing(currency):
+        errors.append("currency is required")
+
+    if errors:
+        return errors, None
+
+    try:
+        from_account_id = int(from_account_id)
+        to_account_id = int(to_account_id)
+    except (TypeError, ValueError):
+        return ["account IDs must be integers"], None
+
+    try:
+        amount_decimal = Decimal(str(amount))
+    except (InvalidOperation, ValueError):
+        return ["amount is invalid"], None
+
+    if amount_decimal <= Decimal("0"):
+        errors.append("amount must be greater than zero")
+
+    currency = currency.strip().upper()
+    if currency not in SUPPORTED_CURRENCIES:
+        errors.append("currency must be one of: GBP, EUR, USD")
+
+    if from_account_id == to_account_id:
+        errors.append("source and destination accounts must be different")
+
+    if errors:
+        return errors, None
+
+    return [], {
+        "from_account_id": from_account_id,
+        "to_account_id": to_account_id,
+        "amount": amount_decimal.quantize(Decimal("0.01")),
+        "currency": currency,
+    }
 
 
 def generate_account_number(existing_checker):

@@ -2,7 +2,7 @@
 
 VulnBank is a deliberately vulnerable fintech REST API being developed as an educational Application Security / DevSecOps portfolio project. The goal is to demonstrate secure development practices, vulnerability assessment, and remediation in a realistic API context.
 
-**Current status:** Step 4 — JWT authentication and authorisation. Protected endpoints require a valid Bearer token. Users can only access their own accounts and profile. Intentional vulnerabilities have **not** been introduced yet.
+**Current status:** Step 5 — secure money transfers. Authenticated users can transfer funds between accounts with atomic balance updates, ownership checks, and currency validation. Intentional vulnerabilities have **not** been introduced yet.
 
 ## Setup (Windows)
 
@@ -56,7 +56,7 @@ The database stores three core fintech models:
 
 - **User** — account holders
 - **Account** — bank accounts linked to a user
-- **Transaction** — records between two accounts (transfers are not implemented yet)
+- **Transaction** — transfer records between two accounts
 
 ### Initialise database tables
 
@@ -138,6 +138,9 @@ These endpoints require a valid JWT:
 | GET    | `/users/<id>/accounts`  |
 | POST   | `/accounts`             |
 | GET    | `/accounts/<id>`        |
+| POST   | `/transactions`         |
+| GET    | `/transactions/<id>`    |
+| GET    | `/accounts/<id>/transactions` |
 
 ### Public endpoints
 
@@ -154,10 +157,75 @@ These endpoints require a valid JWT:
 - `GET /users/<id>/accounts` — users can only list **their own** accounts (`403` for other users)
 - `GET /accounts/<id>` — users can only view **their own** accounts (`403` for other users)
 - `POST /accounts` — account is always created for the **authenticated user**; any `user_id` in the request body is ignored
+- `POST /transactions` — authenticated user must **own the source account**; destination may belong to another user
+- `GET /transactions/<id>` — only the sender or recipient can view a transaction
+- `GET /accounts/<id>/transactions` — only the account owner can view transaction history
 
 The current user is always determined from the JWT `sub` claim, never from request body parameters.
 
-## Security design (Step 4)
+## Transactions
+
+Authenticated users can transfer money between accounts.
+
+### Create a transfer
+
+```http
+POST /transactions
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+    "from_account_id": 1,
+    "to_account_id": 2,
+    "amount": "100.00",
+    "currency": "GBP"
+}
+```
+
+Response (`201 Created`):
+
+```json
+{
+    "id": 1,
+    "from_account_id": 1,
+    "to_account_id": 2,
+    "amount": "100.00",
+    "currency": "GBP",
+    "created_at": "2026-08-24T12:00:00+00:00"
+}
+```
+
+### Transfer rules
+
+- JWT authentication is required
+- The authenticated user must own the **source** account
+- The destination account may belong to another user
+- Source, destination, and request currency must all match (no conversion yet)
+- Amount must be greater than zero
+- Source account must have sufficient funds
+- Source and destination must be different accounts
+- Transfers are **atomic** — balance updates and the transaction record commit or roll back together
+- Row locking on the source account prevents concurrent double-spending
+
+### Get a transaction
+
+```http
+GET /transactions/1
+Authorization: Bearer <access_token>
+```
+
+Only the sender or recipient can view the transaction. Unrelated users receive `403`. Nonexistent transactions return `404`.
+
+### Account transaction history
+
+```http
+GET /accounts/1/transactions
+Authorization: Bearer <access_token>
+```
+
+Returns all transactions where the account is either the source or destination. Only the account owner can access this endpoint.
+
+## Security design (Steps 4–5)
 
 - Passwords hashed with Werkzeug before storage
 - JWT signed with `HS256` using `JWT_SECRET_KEY` from environment
@@ -167,8 +235,10 @@ The current user is always determined from the JWT `sub` claim, never from reque
 - No passwords, password hashes, or secrets in API responses
 - Generic login failure messages (no account enumeration)
 - Server-generated account numbers
-- `Decimal` / `Numeric` for financial values
+- `Decimal` / `Numeric` for financial values (no Python float for money)
 - SQLAlchemy ORM for parameterised queries
+- Database transactions with row locking for transfer atomicity
+- Generic error responses (no stack traces exposed to clients)
 
 Intentional vulnerabilities (IDOR, broken auth, SQL injection, etc.) will be added in later steps for security testing demonstrations.
 
@@ -190,18 +260,30 @@ Intentional vulnerabilities (IDOR, broken auth, SQL injection, etc.) will be add
 
 Clients cannot set `user_id`, `account_number`, `balance`, or `created_at`.
 
+### Transactions
+
+| Field             | Rules                                              |
+|-------------------|----------------------------------------------------|
+| from_account_id   | Required, must exist, must be owned by JWT user    |
+| to_account_id     | Required, must exist, must differ from source      |
+| amount            | Required, must be > 0, parsed as Decimal           |
+| currency          | Required, must match both account currencies       |
+
 ## Endpoints
 
-| Method | Path                    | Auth     | Description                    |
-|--------|-------------------------|----------|--------------------------------|
-| GET    | `/`                     | No       | API name and online status     |
-| GET    | `/health`               | No       | Health check                   |
-| POST   | `/users`                | No       | Create a user                  |
-| POST   | `/login`                | No       | Obtain a JWT                   |
-| GET    | `/users/<id>`           | Required | Get your own user profile      |
-| POST   | `/accounts`             | Required | Create an account for yourself |
-| GET    | `/accounts/<id>`        | Required | Get your own account           |
-| GET    | `/users/<id>/accounts`  | Required | List your own accounts         |
+| Method | Path                          | Auth     | Description                         |
+|--------|-------------------------------|----------|-------------------------------------|
+| GET    | `/`                           | No       | API name and online status          |
+| GET    | `/health`                     | No       | Health check                        |
+| POST   | `/users`                      | No       | Create a user                       |
+| POST   | `/login`                      | No       | Obtain a JWT                        |
+| GET    | `/users/<id>`                 | Required | Get your own user profile           |
+| POST   | `/accounts`                   | Required | Create an account for yourself      |
+| GET    | `/accounts/<id>`              | Required | Get your own account                |
+| GET    | `/users/<id>/accounts`        | Required | List your own accounts              |
+| POST   | `/transactions`               | Required | Transfer money from your account    |
+| GET    | `/transactions/<id>`          | Required | View a transaction you sent/received |
+| GET    | `/accounts/<id>/transactions` | Required | List transactions for your account  |
 
 ## Example workflow
 
@@ -258,5 +340,27 @@ Response (`201 Created`):
 
 ```http
 GET /users/1/accounts
+Authorization: Bearer <access_token>
+```
+
+### 5. Transfer money
+
+```http
+POST /transactions
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+    "from_account_id": 1,
+    "to_account_id": 2,
+    "amount": "50.00",
+    "currency": "GBP"
+}
+```
+
+### 6. View transaction history
+
+```http
+GET /accounts/1/transactions
 Authorization: Bearer <access_token>
 ```

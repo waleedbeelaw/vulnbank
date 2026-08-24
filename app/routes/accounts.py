@@ -5,7 +5,8 @@ from flask import Blueprint, jsonify, request
 from app.auth import FORBIDDEN_RESPONSE, get_current_user_id, jwt_required
 from app.extensions import db
 from app.models import Account, User
-from app.serializers import account_exists_checker, account_to_dict
+from app.serializers import account_exists_checker, account_to_dict, transaction_to_dict
+from app.services.transactions import TransferError, get_account_transactions
 from app.validators import generate_account_number, validate_account_payload
 
 accounts_bp = Blueprint("accounts", __name__)
@@ -42,3 +43,14 @@ def get_account(account_id):
         return jsonify(FORBIDDEN_RESPONSE), 403
 
     return jsonify(account_to_dict(account)), 200
+
+
+@accounts_bp.route("/accounts/<int:account_id>/transactions")
+@jwt_required()
+def list_account_transactions(account_id):
+    try:
+        transactions = get_account_transactions(account_id, get_current_user_id())
+    except TransferError as exc:
+        return jsonify({"error": exc.message}), exc.status_code
+
+    return jsonify([transaction_to_dict(txn) for txn in transactions]), 200

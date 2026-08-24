@@ -23,6 +23,12 @@ BOB = {
     "password": "example-password",
 }
 
+CHARLIE = {
+    "username": "charlie",
+    "email": "charlie@example.com",
+    "password": "example-password",
+}
+
 
 @pytest.fixture
 def app():
@@ -86,4 +92,12 @@ def bob(client):
     response = client.post("/users", json=BOB)
     user = response.get_json()
     headers = login(client, BOB["email"], BOB["password"])
+    return {"user": user, "headers": headers}
+
+
+@pytest.fixture
+def charlie(client):
+    response = client.post("/users", json=CHARLIE)
+    user = response.get_json()
+    headers = login(client, CHARLIE["email"], CHARLIE["password"])
     return {"user": user, "headers": headers}
