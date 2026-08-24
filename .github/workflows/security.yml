@@ -1,5 +1,5 @@
 # VulnBank Pull Request Security Gate
-# Runs on pushes to vulnerable-lab and on pull requests targeting vulnerable-lab.
+# Runs on pushes to main and vulnerable-lab, and on pull requests targeting those branches.
 # Every job must pass before a change is considered security-approved for merge.
 
 name: Security Pipeline
@@ -7,9 +7,11 @@ name: Security Pipeline
 on:
   push:
     branches:
+      - main
       - vulnerable-lab
   pull_request:
     branches:
+      - main
       - vulnerable-lab
 
 # Least privilege by default; jobs add only the permissions they require.
