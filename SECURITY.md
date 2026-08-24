@@ -16,14 +16,14 @@ VulnBank is an **educational Application Security / DevSecOps portfolio project*
 
 | Branch | Purpose |
 |--------|---------|
-| `main` | Secure baseline reference |
+| `main` | Secure baseline reference; protected by the Security Pipeline |
 | `vulnerable-lab` | Full lab history: vulnerability introduction → assessment → remediation → CI security gates |
 
-Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM, Checkov) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md). CI/CD hardening details: [security/cicd-security.md](security/cicd-security.md).
+Changes to `main` or `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM, Checkov) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md). CI/CD hardening details: [security/cicd-security.md](security/cicd-security.md).
 
 ## Branch Protection and Security Gates
 
-VulnBank is designed to demonstrate a **security-gated pull request workflow** on the `vulnerable-lab` branch. The CI pipeline in `.github/workflows/security.yml` runs eight jobs on every push and pull request targeting `vulnerable-lab`. When branch protection is configured, these jobs become **required status checks** that must pass before GitHub allows a merge.
+VulnBank is designed to demonstrate a **security-gated pull request workflow** on the `main` and `vulnerable-lab` branches. The CI pipeline in `.github/workflows/security.yml` runs eight jobs on every push and pull request targeting `main` or `vulnerable-lab`. When branch protection is configured, these jobs become **required status checks** that must pass before GitHub allows a merge.
 
 ### Required status checks (job names)
 
@@ -44,7 +44,7 @@ These names match the `name:` fields defined in `.github/workflows/security.yml`
 
 ### Recommended configuration
 
-The following settings are **recommended** for `vulnerable-lab` in **Settings → Branches → Add branch protection rule** (or edit an existing rule):
+The following settings are **recommended** for `main` and `vulnerable-lab` in **Settings → Branches → Add branch protection rule** (or edit an existing rule):
 
 | Setting | Recommendation |
 |---------|----------------|

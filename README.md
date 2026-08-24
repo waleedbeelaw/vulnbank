@@ -12,7 +12,7 @@ VulnBank is an educational **Application Security / DevSecOps portfolio project*
 |------|----------------------------|
 | Lab workflow | Deliberately vulnerable → assessed → remediated, with Git history preserved |
 | Regression testing | Authenticated security regression tests (`tests/test_vulnerabilities.py`) |
-| PR gates | Eight required checks on pull requests to `vulnerable-lab` |
+| PR gates | Eight required checks on pull requests to `main` and `vulnerable-lab` |
 | DAST | OWASP ZAP baseline + authenticated regression checks |
 | SAST | Bandit on `app/` |
 | SCA | pip-audit on `requirements.txt` |
@@ -23,7 +23,7 @@ VulnBank is an educational **Application Security / DevSecOps portfolio project*
 | Runtime hardening | Docker non-root user, internal PostgreSQL, Compose hardening |
 | Audit logging | Structured JSON security events with request correlation IDs |
 | CI/CD hardening | SHA-pinned GitHub Actions, least-privilege `contents: read`, Dependabot |
-| Branch workflow | Protected-branch model documented for `vulnerable-lab` |
+| Branch workflow | Protected-branch model documented for `main` and `vulnerable-lab` |
 
 **Detailed security documentation:** [security/README.md](security/README.md) · [security/threat-model.md](security/threat-model.md) · [security/architecture.md](security/architecture.md) · [security/security-journey.md](security/security-journey.md)
 
@@ -159,7 +159,7 @@ The suite currently contains **125 tests** (functional, security regression, and
 
 ## DevSecOps / CI Security
 
-Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab` triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
+Every push to `main` or `vulnerable-lab`, and every pull request targeting those branches, triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
 
 | Job | Tool | Purpose |
 |-----|------|---------|
@@ -195,10 +195,10 @@ DAST requires Docker for the ZAP scan. See [security/dast/README.md](security/da
 
 ## Pull Request Security Gate
 
-VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab` branch. The GitHub Actions workflow in `.github/workflows/security.yml` runs automatically on:
+VulnBank uses a **security-gated pull request workflow** on the `main` and `vulnerable-lab` branches. The GitHub Actions workflow in `.github/workflows/security.yml` runs automatically on:
 
-- **Pushes** to `vulnerable-lab`
-- **Pull requests** targeting `vulnerable-lab`
+- **Pushes** to `main` or `vulnerable-lab`
+- **Pull requests** targeting `main` or `vulnerable-lab`
 
 Each pull request should pass all eight security checks before it is considered approved for merge:
 
