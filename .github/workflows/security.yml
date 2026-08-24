@@ -1,50 +1,55 @@
-# VulnBank DevSecOps security pipeline
-# Runs on every push and pull request to catch regressions before merge.
+# VulnBank Pull Request Security Gate
+# Runs on pushes to vulnerable-lab and on pull requests targeting vulnerable-lab.
+# Every job must pass before a change is considered security-approved for merge.
 
 name: Security Pipeline
 
 on:
   push:
+    branches:
+      - vulnerable-lab
   pull_request:
+    branches:
+      - vulnerable-lab
 
 permissions:
   contents: read
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1. Python test suite — functional and security regression tests
+  # 1. Functional and security regression tests (pytest)
   # ---------------------------------------------------------------------------
   test:
-    name: Python Test Suite
+    name: PR Security Gate — Test Suite (pytest)
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out pull request code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: Install dependencies
+      - name: Install project dependencies
         run: pip install -r requirements.txt
 
-      - name: Run pytest
+      - name: Run pytest (fail on any test failure)
         run: pytest -v
 
   # ---------------------------------------------------------------------------
-  # 2. SAST — static analysis for common Python security issues
+  # 2. SAST — static analysis for common Python security issues (Bandit)
   # ---------------------------------------------------------------------------
   sast:
-    name: SAST (Bandit)
+    name: PR Security Gate — SAST (Bandit)
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out pull request code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -54,23 +59,23 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
 
-      - name: Run Bandit against app/
-        # -r app/     : scan application source only
-        # -ll         : report medium severity and above
-        # exit code 1 : fail the job when findings are present
+      - name: Run Bandit SAST against app/ (fail on findings)
+        # -r app/ : scan application source only
+        # -ll      : report medium severity and above
+        # Bandit exits non-zero when issues are found, failing this job.
         run: bandit -r app/ -ll -f txt
 
   # ---------------------------------------------------------------------------
-  # 3. Dependency vulnerability scanning
+  # 3. SCA — dependency vulnerability scanning (pip-audit)
   # ---------------------------------------------------------------------------
   dependency-scan:
-    name: Dependency Vulnerability Scan
+    name: PR Security Gate — SCA (pip-audit)
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out pull request code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -83,24 +88,23 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      - name: Audit declared dependencies with pip-audit
-        # Scan requirements.txt rather than every tool on the runner (e.g. pip itself).
+      - name: Run pip-audit SCA on requirements.txt (fail on CVEs)
+        # Audit declared dependencies only — not every tool installed on the runner.
         run: pip-audit -r requirements.txt
 
   # ---------------------------------------------------------------------------
-  # 4. Secret scanning — detect accidentally committed credentials
+  # 4. Secret scanning — detect accidentally committed credentials (Gitleaks)
   # ---------------------------------------------------------------------------
   secret-scan:
-    name: Secret Scanning
+    name: PR Security Gate — Secret Scan (Gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out full repository history
         uses: actions/checkout@v4
         with:
-          # Full history helps Gitleaks detect secrets in any commit.
           fetch-depth: 0
 
-      - name: Scan for secrets with Gitleaks
+      - name: Run Gitleaks secret scan (fail on detected secrets)
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -84,7 +84,7 @@ Tests use an isolated in-memory SQLite database and a test JWT secret, so they d
 
 ## DevSecOps / CI Security
 
-Every push and pull request triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
+Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab` triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
 
 | Job | Tool | Purpose |
 |-----|------|---------|
@@ -100,6 +100,26 @@ pytest -v
 bandit -r app/ -ll
 pip-audit -r requirements.txt
 ```
+
+## Pull Request Security Gate
+
+The `vulnerable-lab` branch is protected by the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline runs automatically on:
+
+- **Pushes** to `vulnerable-lab`
+- **Pull requests** targeting `vulnerable-lab`
+
+Each pull request must pass all four security checks before it should be considered approved for merge:
+
+| Check | Tool | What it verifies |
+|-------|------|------------------|
+| Test Suite | pytest | Functional behaviour and security regression tests (107 tests) |
+| SAST | Bandit | Python source in `app/` for common security anti-patterns |
+| SCA | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
+| Secret Scan | Gitleaks | Repository history for accidentally committed credentials |
+
+If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
+
+To enforce this in GitHub, enable branch protection on `vulnerable-lab` and require the four **PR Security Gate** status checks to pass before merging.
 
 ## Authentication
 
