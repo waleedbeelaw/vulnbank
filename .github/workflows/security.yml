@@ -193,6 +193,7 @@ jobs:
         with:
           image-ref: vulnbank:ci
           scan-type: image
+          scanners: vuln
           vuln-type: os,library
           format: table
           exit-code: "1"

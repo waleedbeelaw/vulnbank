@@ -1,6 +1,12 @@
 # VulnBank Flask application — development/demo image
 FROM python:3.12-slim
 
+# Apply Debian security updates at build time so OS packages (e.g. util-linux)
+# are patched before the image is scanned by Trivy. Kept minimal: no extra packages.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 # Run as a dedicated non-root user (not root).
 RUN groupadd --gid 1000 vulnbank \
     && useradd --uid 1000 --gid vulnbank --create-home --shell /bin/bash vulnbank
