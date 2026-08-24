@@ -24,6 +24,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 |----------|-------------|
 | [../SECURITY.md](../SECURITY.md) | Security policy — reporting, disclosure, scope |
 | [dependency-management.md](dependency-management.md) | Dependency scanning with pip-audit |
+| [dast/README.md](dast/README.md) | Dynamic application security testing with OWASP ZAP |
 | [assessment.md](assessment.md) | Step 7 AppSec assessment summary |
 | [remediation.md](remediation.md) | Step 8 remediation summary (all findings **Remediated**) |
 | [test-matrix.md](test-matrix.md) | Structured manual test cases |
@@ -32,7 +33,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 
 ## CI security gates
 
-Pull requests targeting `vulnerable-lab` must pass four checks defined in [`.github/workflows/security.yml`](../.github/workflows/security.yml):
+Pull requests targeting `vulnerable-lab` must pass five checks defined in [`.github/workflows/security.yml`](../.github/workflows/security.yml):
 
 | Gate | Tool |
 |------|------|
@@ -40,6 +41,7 @@ Pull requests targeting `vulnerable-lab` must pass four checks defined in [`.git
 | SAST | Bandit |
 | SCA | pip-audit |
 | Secret Scan | Gitleaks |
+| DAST | OWASP ZAP + `security/dast/regression_checks.py` |
 
 See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate).
 
