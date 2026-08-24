@@ -19,8 +19,8 @@ def create_app(test_config=None):
     # Import models so SQLAlchemy registers them before create_all().
     from app import models  # noqa: F401
 
-    from app import routes
+    from app.routes import register_blueprints
 
-    app.register_blueprint(routes.bp)
+    register_blueprints(app)
 
     return app

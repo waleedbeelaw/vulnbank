@@ -2,7 +2,7 @@
 
 VulnBank is a deliberately vulnerable fintech REST API being developed as an educational Application Security / DevSecOps portfolio project. The goal is to demonstrate secure development practices, vulnerability assessment, and remediation in a realistic API context.
 
-**Current status:** Step 2 — PostgreSQL database foundation with User, Account, and Transaction models. Root and health endpoints from Step 1 are unchanged. No authentication, payments, or intentional vulnerabilities have been added yet.
+**Current status:** Step 3 — Users and Accounts API. Passwords are hashed before storage. Account numbers are generated server-side. Authentication has not been implemented yet, and intentional vulnerabilities have not been introduced yet.
 
 ## Setup (Windows)
 
@@ -82,9 +82,133 @@ pytest
 
 Tests use an isolated in-memory SQLite database, so they do not require PostgreSQL or real credentials.
 
+## Security baseline (Step 3)
+
+The current API follows secure baseline practices:
+
+- Passwords are hashed with Werkzeug before storage
+- Plaintext passwords and password hashes are never returned in API responses
+- Account numbers are generated server-side
+- Balances use `Decimal` / `Numeric` rather than floating point
+- Input is validated before database operations
+- SQLAlchemy ORM is used for parameterised queries
+
+Authentication (JWT or session-based) is **not** implemented yet. Any user can call any endpoint. Intentional vulnerabilities will be added in later steps.
+
+## Validation rules
+
+### Users
+
+| Field    | Rules                                      |
+|----------|--------------------------------------------|
+| username | Required, max 80 characters, unique        |
+| email    | Required, max 120 characters, valid format, unique |
+| password | Required, minimum 8 characters             |
+
+### Accounts
+
+| Field    | Rules                                      |
+|----------|--------------------------------------------|
+| user_id  | Required, must reference an existing user  |
+| currency | Required, must be `GBP`, `EUR`, or `USD`     |
+
+Clients cannot set `account_number`, `balance`, or `created_at`.
+
 ## Endpoints
 
-| Method | Path      | Description                |
-|--------|-----------|----------------------------|
-| GET    | `/`       | API name and online status |
-| GET    | `/health` | Health check               |
+| Method | Path                    | Description                          |
+|--------|-------------------------|--------------------------------------|
+| GET    | `/`                     | API name and online status           |
+| GET    | `/health`               | Health check                         |
+| POST   | `/users`                | Create a user                        |
+| GET    | `/users/<id>`           | Get a user by ID                     |
+| POST   | `/accounts`             | Create an account for a user         |
+| GET    | `/accounts/<id>`        | Get an account by ID                 |
+| GET    | `/users/<id>/accounts`  | List all accounts for a user         |
+
+## Example requests
+
+### Create a user
+
+```http
+POST /users
+Content-Type: application/json
+
+{
+    "username": "alice",
+    "email": "alice@example.com",
+    "password": "example-password"
+}
+```
+
+Response (`201 Created`):
+
+```json
+{
+    "id": 1,
+    "username": "alice",
+    "email": "alice@example.com"
+}
+```
+
+### Get a user
+
+```http
+GET /users/1
+```
+
+Response (`200 OK`):
+
+```json
+{
+    "id": 1,
+    "username": "alice",
+    "email": "alice@example.com"
+}
+```
+
+### Create an account
+
+```http
+POST /accounts
+Content-Type: application/json
+
+{
+    "user_id": 1,
+    "currency": "GBP"
+}
+```
+
+Response (`201 Created`):
+
+```json
+{
+    "id": 1,
+    "user_id": 1,
+    "account_number": "VB1234567890",
+    "balance": "0.00",
+    "currency": "GBP"
+}
+```
+
+### List a user's accounts
+
+```http
+GET /users/1/accounts
+```
+
+Response (`200 OK`):
+
+```json
+[
+    {
+        "id": 1,
+        "user_id": 1,
+        "account_number": "VB1234567890",
+        "balance": "0.00",
+        "currency": "GBP"
+    }
+]
+```
+
+Returns an empty list (`[]`) if the user exists but has no accounts.

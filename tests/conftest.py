@@ -3,6 +3,12 @@ import pytest
 from app import create_app
 from app.extensions import db
 
+VALID_USER = {
+    "username": "alice",
+    "email": "alice@example.com",
+    "password": "example-password",
+}
+
 
 @pytest.fixture
 def app():
@@ -31,3 +37,9 @@ def client(app):
 def db_session(app):
     with app.app_context():
         yield db.session
+
+
+@pytest.fixture
+def created_user(client):
+    response = client.post("/users", json=VALID_USER)
+    return response.get_json()
