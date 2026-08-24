@@ -133,3 +133,31 @@ Ensure every endpoint returning user-specific objects validates ownership agains
 | C:H | High | Full account object including balance exposed |
 | I:N | None | Read-only |
 | A:N | None | No availability impact |
+
+## Remediation
+
+Restored object-level authorisation in `app/routes/accounts.py` `get_account()`:
+
+```python
+if account.user_id != get_current_user_id():
+    return jsonify(FORBIDDEN_RESPONSE), 403
+```
+
+The endpoint still requires JWT authentication via `@jwt_required()`. Nonexistent accounts continue to return HTTP 404 before the ownership check runs, so account existence is not leaked to unauthorised callers for other users' IDs in a way that differs from the secure baseline (404 only when account does not exist; 403 when it exists but belongs to another user).
+
+## Verification
+
+The following regression tests confirm the fix:
+
+- `tests/test_auth.py::test_alice_can_access_alice_account` — owner access returns 200
+- `tests/test_auth.py::test_alice_cannot_access_bob_account` — cross-user access returns 403
+- `tests/test_auth.py::test_bob_cannot_access_alice_account` — cross-user access returns 403
+- `tests/test_auth.py::test_get_account_without_token_returns_401` — unauthenticated access rejected
+- `tests/test_accounts_api.py::test_get_account_returns_404_for_nonexistent_account` — missing account returns 404
+- `tests/test_vulnerabilities.py::test_idor_remediation_*` — dedicated remediation regression suite
+
+Manual retest: Alice requests Bob's account → HTTP 403 `{"error": "Forbidden"}`.
+
+## Status
+
+**REMEDIATED**

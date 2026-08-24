@@ -1,23 +1,26 @@
 from flask import Blueprint, jsonify, request
-from sqlalchemy import text
+from sqlalchemy import or_
 
-from app.extensions import db
+from app.models import User
 
 search_bp = Blueprint("search", __name__)
 
 
 @search_bp.route("/search/users")
 def search_users():
-    query_term = request.args.get("q", "")
+    query_term = request.args.get("q", "").strip()
 
-    # INTENTIONAL VULNERABILITY FOR LOCAL APPSEC LAB:
-    # User input is concatenated directly into SQL.
-    # This enables SQL injection. It will be remediated in a later step.
-    sql = (
-        "SELECT id, username, email FROM users "
-        f"WHERE username LIKE '%{query_term}%' OR email LIKE '%{query_term}%'"
-    )
-    results = db.session.execute(text(sql)).fetchall()
+    if not query_term:
+        return jsonify([]), 200
 
-    users = [{"id": row.id, "username": row.username, "email": row.email} for row in results]
-    return jsonify(users), 200
+    pattern = f"%{query_term}%"
+    users = User.query.filter(
+        or_(
+            User.username.ilike(pattern),
+            User.email.ilike(pattern),
+        )
+    ).all()
+
+    return jsonify(
+        [{"id": user.id, "username": user.username, "email": user.email} for user in users]
+    ), 200

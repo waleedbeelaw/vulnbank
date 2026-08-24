@@ -135,3 +135,35 @@ Additionally, require authentication for search if appropriate, and apply rate l
 | C:L | Low | Usernames and emails exposed |
 | I:N | None | SELECT-only in current code |
 | A:N | None | No availability impact |
+
+## Remediation
+
+Replaced f-string SQL concatenation in `app/routes/search.py` with SQLAlchemy ORM filters:
+
+```python
+pattern = f"%{query_term}%"
+users = User.query.filter(
+    or_(
+        User.username.ilike(pattern),
+        User.email.ilike(pattern),
+    )
+).all()
+```
+
+User input is never embedded in executable SQL. Empty or whitespace-only queries return an empty JSON array. Search behaviour for legitimate terms is preserved.
+
+## Verification
+
+The following regression tests confirm the fix:
+
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_payload_does_not_return_all_users` — `' OR '1'='1` returns zero users, not all users
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_normal_search_by_username` — username search works
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_search_by_email` — email search works
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_metacharacters_treated_as_literal` — `%` treated as literal data
+- `tests/test_vulnerabilities.py::test_sql_injection_remediation_empty_query_returns_empty_list` — missing/empty query handled safely
+
+Manual retest: `GET /search/users?q=' OR '1'='1` returns `[]` or only literal matches, never all users.
+
+## Status
+
+**REMEDIATED**

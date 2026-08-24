@@ -147,3 +147,31 @@ html = f"<html><body><h1>{escape(name)}</h1></body></html>"
 | C:L | Low | Limited data accessible to script |
 | I:L | Low | DOM manipulation possible |
 | A:N | None | No direct availability impact |
+
+## Remediation
+
+Replaced f-string HTML construction in `app/routes/profile.py` with Jinja2 templating via `render_template_string()`. Flask/Jinja2 auto-escaping HTML-encodes `display_name` and `username` at render time:
+
+```python
+html = render_template_string(
+    PROFILE_TEMPLATE,
+    name=name,
+    username=user.username,
+)
+```
+
+Input storage is unchanged — legitimate display names including `<`, `>`, quotes, and ampersands are stored as provided. Output encoding at the sink prevents script execution.
+
+## Verification
+
+The following regression tests confirm the fix:
+
+- `tests/test_vulnerabilities.py::test_xss_remediation_payload_is_html_escaped` — `<script>alert(...)</script>` rendered as encoded text, not executable markup
+- `tests/test_vulnerabilities.py::test_xss_remediation_normal_display_name_renders` — normal names display correctly (with encoding where needed)
+- `tests/test_vulnerabilities.py::test_xss_remediation_quotes_and_special_characters_safe` — quotes and special characters handled safely
+
+Manual retest: store XSS payload via `PUT /users/me/profile`, view via `GET /profile/<id>/view` — response contains `&lt;script&gt;...` not raw `<script>`.
+
+## Status
+
+**REMEDIATED**

@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from sqlalchemy import or_
 
 from app.extensions import db
@@ -44,12 +42,7 @@ def create_transfer(from_account_id, to_account_id, amount, currency, user_id):
         if source.currency != currency or destination.currency != currency:
             raise TransferError("currency mismatch", 400)
 
-        # INTENTIONAL VULNERABILITY FOR LOCAL APPSEC LAB:
-        # Transfers below £1000 skip the insufficient funds check.
-        # This flawed "micro-transfer fast path" violates the solvency invariant.
-        # It will be remediated in a later step.
-        micro_transfer_limit = Decimal("1000.00")
-        if amount >= micro_transfer_limit and source.balance < amount:
+        if source.balance < amount:
             raise TransferError("insufficient funds", 400)
 
         source.balance -= amount

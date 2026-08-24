@@ -159,3 +159,33 @@ Consider adding a database constraint preventing negative balances as defence in
 | C:N | None | No confidentiality impact |
 | I:H | High | Unbacked fund transfers; negative balances |
 | A:N | None | Service remains available |
+
+## Remediation
+
+Removed the micro-transfer threshold in `app/services/transactions.py` and enforced insufficient funds for every transfer:
+
+```python
+if source.balance < amount:
+    raise TransferError("insufficient funds", 400)
+```
+
+The check executes after source-account authorisation and currency validation, and before any balance mutation or transaction record creation. Existing row locking (`with_for_update()`) and atomic commit/rollback behaviour are unchanged.
+
+## Verification
+
+The following regression tests confirm the fix:
+
+- `tests/test_transactions.py::test_insufficient_funds_rejected` — overdraft attempt returns 400
+- `tests/test_transactions.py::test_failed_transfer_does_not_modify_source_balance` — source balance unchanged on failure
+- `tests/test_transactions.py::test_failed_transfer_does_not_modify_destination_balance` — destination balance unchanged on failure
+- `tests/test_transactions.py::test_failed_transfer_does_not_create_record` — no transaction record on failure
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_micro_transfer_overdraft_rejected` — £100 → £500 fails
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_exact_balance_transfer_succeeds` — £100 → £100 succeeds
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_sub_limit_transfer_succeeds` — £100 → £99.99 succeeds
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_failed_transfer_creates_no_record` — no record after failed £500 transfer
+
+Manual retest: Alice with £100 transfers £500 → HTTP 400 `{"error": "insufficient funds"}`; balances unchanged.
+
+## Status
+
+**REMEDIATED**
