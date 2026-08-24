@@ -88,8 +88,8 @@ def test_duplicate_email_rejected(client):
     assert response.get_json()["error"] == "email already exists"
 
 
-def test_get_user_returns_correct_user(client, created_user):
-    response = client.get(f"/users/{created_user['id']}")
+def test_get_user_returns_correct_user(client, created_user, auth_headers):
+    response = client.get(f"/users/{created_user['id']}", headers=auth_headers)
 
     assert response.status_code == 200
     data = response.get_json()
@@ -97,8 +97,8 @@ def test_get_user_returns_correct_user(client, created_user):
     assert "password_hash" not in data
 
 
-def test_get_user_returns_404_for_nonexistent_user(client):
-    response = client.get("/users/999")
+def test_get_user_returns_404_for_nonexistent_user(client, auth_headers):
+    response = client.get("/users/999", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.get_json()["error"] == "user not found"

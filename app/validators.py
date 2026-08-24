@@ -44,6 +44,22 @@ def validate_user_payload(data):
     return errors
 
 
+def validate_login_payload(data):
+    """Return a list of validation error messages."""
+    errors = []
+
+    if data is None:
+        return ["Request body must be JSON"]
+
+    if _is_missing(data.get("email")):
+        errors.append("email is required")
+
+    if _is_missing(data.get("password")):
+        errors.append("password is required")
+
+    return errors
+
+
 def validate_account_payload(data):
     """Return a list of validation error messages."""
     errors = []
@@ -51,11 +67,7 @@ def validate_account_payload(data):
     if data is None:
         return ["Request body must be JSON"]
 
-    user_id = data.get("user_id")
     currency = data.get("currency")
-
-    if user_id is None:
-        errors.append("user_id is required")
 
     if _is_missing(currency):
         errors.append("currency is required")

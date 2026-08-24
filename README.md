@@ -2,7 +2,7 @@
 
 VulnBank is a deliberately vulnerable fintech REST API being developed as an educational Application Security / DevSecOps portfolio project. The goal is to demonstrate secure development practices, vulnerability assessment, and remediation in a realistic API context.
 
-**Current status:** Step 3 — Users and Accounts API. Passwords are hashed before storage. Account numbers are generated server-side. Authentication has not been implemented yet, and intentional vulnerabilities have not been introduced yet.
+**Current status:** Step 4 — JWT authentication and authorisation. Protected endpoints require a valid Bearer token. Users can only access their own accounts and profile. Intentional vulnerabilities have **not** been introduced yet.
 
 ## Setup (Windows)
 
@@ -24,6 +24,30 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+## Environment variables
+
+Copy the example environment file:
+
+```powershell
+copy .env.example .env
+```
+
+Edit `.env` and set:
+
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/vulnbank
+JWT_SECRET_KEY=replace-with-a-long-random-secret-key
+```
+
+| Variable         | Purpose                                      |
+|------------------|----------------------------------------------|
+| `DATABASE_URL`   | PostgreSQL connection string                 |
+| `JWT_SECRET_KEY` | Secret used to sign and verify JWT tokens    |
+
+A real `.env` file must **never** be committed to version control.
+
+If either variable is missing, the application fails with a clear error message.
+
 ## Database
 
 VulnBank uses **PostgreSQL** as its database. **SQLAlchemy** (via Flask-SQLAlchemy) is used as the ORM.
@@ -34,26 +58,6 @@ The database stores three core fintech models:
 - **Account** — bank accounts linked to a user
 - **Transaction** — records between two accounts (transfers are not implemented yet)
 
-Database credentials are provided through environment variables. A real `.env` file must **never** be committed to version control.
-
-### Configure the database
-
-1. Install and start PostgreSQL locally.
-2. Create a database named `vulnbank` (or your preferred name).
-3. Copy the example environment file:
-
-```powershell
-copy .env.example .env
-```
-
-4. Edit `.env` and set `DATABASE_URL` to your local PostgreSQL connection string:
-
-```
-DATABASE_URL=postgresql://username:password@localhost:5432/vulnbank
-```
-
-Replace `username`, `password`, and the database name with your local values.
-
 ### Initialise database tables
 
 After configuring `.env`, create the tables:
@@ -61,8 +65,6 @@ After configuring `.env`, create the tables:
 ```powershell
 python init_db.py
 ```
-
-This runs `db.create_all()` to create the `users`, `accounts`, and `transactions` tables.
 
 ## Run the application
 
@@ -72,28 +74,103 @@ python run.py
 
 The API will be available at `http://127.0.0.1:5000`.
 
-If `DATABASE_URL` is missing, the application will fail with a clear error message.
-
 ## Run tests
 
 ```powershell
 pytest
 ```
 
-Tests use an isolated in-memory SQLite database, so they do not require PostgreSQL or real credentials.
+Tests use an isolated in-memory SQLite database and a test JWT secret, so they do not require PostgreSQL or real credentials.
 
-## Security baseline (Step 3)
+## Authentication
 
-The current API follows secure baseline practices:
+VulnBank uses **JWT (JSON Web Token)** authentication via the PyJWT library.
 
-- Passwords are hashed with Werkzeug before storage
-- Plaintext passwords and password hashes are never returned in API responses
-- Account numbers are generated server-side
-- Balances use `Decimal` / `Numeric` rather than floating point
-- Input is validated before database operations
-- SQLAlchemy ORM is used for parameterised queries
+### Login
 
-Authentication (JWT or session-based) is **not** implemented yet. Any user can call any endpoint. Intentional vulnerabilities will be added in later steps.
+```http
+POST /login
+Content-Type: application/json
+
+{
+    "email": "alice@example.com",
+    "password": "example-password"
+}
+```
+
+Response (`200 OK`):
+
+```json
+{
+    "access_token": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+Invalid credentials return `401` with a generic message that does not reveal whether the email exists:
+
+```json
+{
+    "error": "Invalid credentials"
+}
+```
+
+### Using a token
+
+Send the token in the `Authorization` header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Tokens expire after 1 hour. Expired or invalid tokens return `401`.
+
+## Authorisation
+
+Authentication (who you are) and authorisation (what you can access) are handled separately.
+
+### Protected endpoints
+
+These endpoints require a valid JWT:
+
+| Method | Path                    |
+|--------|-------------------------|
+| GET    | `/users/<id>`           |
+| GET    | `/users/<id>/accounts`  |
+| POST   | `/accounts`             |
+| GET    | `/accounts/<id>`        |
+
+### Public endpoints
+
+| Method | Path        | Notes                    |
+|--------|-------------|--------------------------|
+| GET    | `/`         | API status               |
+| GET    | `/health`   | Health check             |
+| POST   | `/users`    | User registration        |
+| POST   | `/login`    | Obtain a JWT             |
+
+### Ownership rules
+
+- `GET /users/<id>` — users can only view their **own** profile (`403` for other users)
+- `GET /users/<id>/accounts` — users can only list **their own** accounts (`403` for other users)
+- `GET /accounts/<id>` — users can only view **their own** accounts (`403` for other users)
+- `POST /accounts` — account is always created for the **authenticated user**; any `user_id` in the request body is ignored
+
+The current user is always determined from the JWT `sub` claim, never from request body parameters.
+
+## Security design (Step 4)
+
+- Passwords hashed with Werkzeug before storage
+- JWT signed with `HS256` using `JWT_SECRET_KEY` from environment
+- Explicit algorithm allow-list during verification (no algorithm confusion)
+- Unsigned tokens are rejected
+- Token expiration enforced
+- No passwords, password hashes, or secrets in API responses
+- Generic login failure messages (no account enumeration)
+- Server-generated account numbers
+- `Decimal` / `Numeric` for financial values
+- SQLAlchemy ORM for parameterised queries
+
+Intentional vulnerabilities (IDOR, broken auth, SQL injection, etc.) will be added in later steps for security testing demonstrations.
 
 ## Validation rules
 
@@ -109,26 +186,26 @@ Authentication (JWT or session-based) is **not** implemented yet. Any user can c
 
 | Field    | Rules                                      |
 |----------|--------------------------------------------|
-| user_id  | Required, must reference an existing user  |
-| currency | Required, must be `GBP`, `EUR`, or `USD`     |
+| currency | Required, must be `GBP`, `EUR`, or `USD`   |
 
-Clients cannot set `account_number`, `balance`, or `created_at`.
+Clients cannot set `user_id`, `account_number`, `balance`, or `created_at`.
 
 ## Endpoints
 
-| Method | Path                    | Description                          |
-|--------|-------------------------|--------------------------------------|
-| GET    | `/`                     | API name and online status           |
-| GET    | `/health`               | Health check                         |
-| POST   | `/users`                | Create a user                        |
-| GET    | `/users/<id>`           | Get a user by ID                     |
-| POST   | `/accounts`             | Create an account for a user         |
-| GET    | `/accounts/<id>`        | Get an account by ID                 |
-| GET    | `/users/<id>/accounts`  | List all accounts for a user         |
+| Method | Path                    | Auth     | Description                    |
+|--------|-------------------------|----------|--------------------------------|
+| GET    | `/`                     | No       | API name and online status     |
+| GET    | `/health`               | No       | Health check                   |
+| POST   | `/users`                | No       | Create a user                  |
+| POST   | `/login`                | No       | Obtain a JWT                   |
+| GET    | `/users/<id>`           | Required | Get your own user profile      |
+| POST   | `/accounts`             | Required | Create an account for yourself |
+| GET    | `/accounts/<id>`        | Required | Get your own account           |
+| GET    | `/users/<id>/accounts`  | Required | List your own accounts         |
 
-## Example requests
+## Example workflow
 
-### Create a user
+### 1. Create a user
 
 ```http
 POST /users
@@ -141,40 +218,26 @@ Content-Type: application/json
 }
 ```
 
-Response (`201 Created`):
-
-```json
-{
-    "id": 1,
-    "username": "alice",
-    "email": "alice@example.com"
-}
-```
-
-### Get a user
+### 2. Log in
 
 ```http
-GET /users/1
-```
-
-Response (`200 OK`):
-
-```json
-{
-    "id": 1,
-    "username": "alice",
-    "email": "alice@example.com"
-}
-```
-
-### Create an account
-
-```http
-POST /accounts
+POST /login
 Content-Type: application/json
 
 {
-    "user_id": 1,
+    "email": "alice@example.com",
+    "password": "example-password"
+}
+```
+
+### 3. Create an account (authenticated)
+
+```http
+POST /accounts
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
     "currency": "GBP"
 }
 ```
@@ -191,24 +254,9 @@ Response (`201 Created`):
 }
 ```
 
-### List a user's accounts
+### 4. List your accounts
 
 ```http
 GET /users/1/accounts
+Authorization: Bearer <access_token>
 ```
-
-Response (`200 OK`):
-
-```json
-[
-    {
-        "id": 1,
-        "user_id": 1,
-        "account_number": "VB1234567890",
-        "balance": "0.00",
-        "currency": "GBP"
-    }
-]
-```
-
-Returns an empty list (`[]`) if the user exists but has no accounts.
