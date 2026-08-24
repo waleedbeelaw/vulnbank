@@ -43,7 +43,7 @@ VulnBank therefore does **not** grant job-level `actions: write`. Artifact steps
 
 This keeps SBOM inventory generation (Syft) separate from artifact retention (official upload-artifact action) and avoids granting Anchore action broad upload permissions.
 
-**Verification note:** Confirm in GitHub Actions that artifact upload succeeds under workflow-level `contents: read` only. If the runner rejects uploads, the least-privilege fix is a **narrow** job-level permission documented with upstream reference — not workflow-wide elevation.
+**Verification note:** Confirm in GitHub Actions that artifact upload succeeds under workflow-level `contents: read` only. If the runner rejects uploads, the least-privilege fix is a **narrow** job-level permission documented with upstream reference - not workflow-wide elevation.
 
 No job grants `contents: write`, `pull-requests: write`, `packages: write`, or `id-token: write`.
 ## Immutable action SHA pinning
@@ -63,7 +63,7 @@ uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 | Action | Version | Commit SHA | Used in |
 |--------|---------|------------|---------|
 | `actions/checkout` | v4.4.0 | `11d5960a326750d5838078e36cf38b85af677262` | All jobs except Secret Scan |
-| `actions/checkout` | v6.0.1 | `8e8c483db84b4bee98b60c0593521ed34d9990e8` | Secret Scan (Gitleaks) — Node 24 runtime |
+| `actions/checkout` | v6.0.1 | `8e8c483db84b4bee98b60c0593521ed34d9990e8` | Secret Scan (Gitleaks) - Node 24 runtime |
 | `actions/setup-python` | v5.6.0 | `a26af69be951a213d495a4c3e4e4022e16d87065` | Python jobs |
 | `actions/upload-artifact` | v4.6.2 | `ea165f8d65b6e75b540449e92b4886f43607fa02` | DAST, SBOM |
 | `gitleaks/gitleaks-action` | v3.0.0 | `e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` | Secret Scan |
@@ -139,4 +139,4 @@ VulnBank uses **`pull_request`** and **`push`** on `vulnerable-lab` only. It doe
 
 - [deployment-security.md](deployment-security.md)
 - [supply-chain-security.md](supply-chain-security.md)
-- [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate)
+- [README.md - Pull Request Security Gate](../README.md#pull-request-security-gate)

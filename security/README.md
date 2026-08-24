@@ -8,7 +8,7 @@ Central index for the Application Security / DevSecOps lifecycle demonstrated by
 |----------|-------------|
 | [security-journey.md](security-journey.md) | End-to-end lifecycle narrative (baseline → lab → remediation → CI gates) |
 | [architecture.md](architecture.md) | Runtime stack and DevSecOps pipeline (Mermaid diagrams) |
-| [threat-model.md](threat-model.md) | STRIDE-style threat model — assets, boundaries, lab vs remediated vs residual |
+| [threat-model.md](threat-model.md) | STRIDE-style threat model - assets, boundaries, lab vs remediated vs residual |
 | [control-matrix.md](control-matrix.md) | Risk → preventative/detective controls → CI enforcement |
 
 ## Security lifecycle
@@ -35,7 +35,7 @@ Each phase is preserved in Git history so reviewers can follow the full AppSec s
 
 | Document | Description |
 |----------|-------------|
-| [../SECURITY.md](../SECURITY.md) | Security policy — reporting, disclosure, scope, branch protection |
+| [../SECURITY.md](../SECURITY.md) | Security policy - reporting, disclosure, scope, branch protection |
 | [../README.md](../README.md) | Project overview and Security Engineering Highlights |
 
 ## Assessment and remediation (historical)
@@ -43,7 +43,7 @@ Each phase is preserved in Git history so reviewers can follow the full AppSec s
 | Document | Description |
 |----------|-------------|
 | [assessment.md](assessment.md) | Step 7 AppSec assessment summary (historical snapshot at assessment time) |
-| [remediation.md](remediation.md) | Step 8 remediation summary — all findings **Remediated** |
+| [remediation.md](remediation.md) | Step 8 remediation summary - all findings **Remediated** |
 | [test-matrix.md](test-matrix.md) | Structured manual test cases |
 | [findings/](findings/) | Per-finding reports (VULN-001 … VULN-004) with remediation status |
 | [vulnerabilities/](vulnerabilities/) | Original lab vulnerability descriptions (historical) |
@@ -66,16 +66,16 @@ Pull requests targeting `vulnerable-lab` must pass eight checks defined in [`.gi
 
 | # | Status check name | Tool |
 |---|-------------------|------|
-| 1 | PR Security Gate — Test Suite (pytest) | pytest (125 tests) |
-| 2 | PR Security Gate — SAST (Bandit) | Bandit |
-| 3 | PR Security Gate — SCA (pip-audit) | pip-audit |
-| 4 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks v3 |
-| 5 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP + `security/dast/regression_checks.py` |
-| 6 | PR Security Gate — Container Scan (Trivy) | Trivy |
-| 7 | PR Security Gate — SBOM (Syft) | Syft (CycloneDX JSON from container image) |
-| 8 | PR Security Gate — IaC Scan (Checkov) | Checkov (Dockerfile / Compose) |
+| 1 | PR Security Gate - Test Suite (pytest) | pytest (125 tests) |
+| 2 | PR Security Gate - SAST (Bandit) | Bandit |
+| 3 | PR Security Gate - SCA (pip-audit) | pip-audit |
+| 4 | PR Security Gate - Secret Scan (Gitleaks) | Gitleaks v3 |
+| 5 | PR Security Gate - DAST (OWASP ZAP) | OWASP ZAP + `security/dast/regression_checks.py` |
+| 6 | PR Security Gate - Container Scan (Trivy) | Trivy |
+| 7 | PR Security Gate - SBOM (Syft) | Syft (CycloneDX JSON from container image) |
+| 8 | PR Security Gate - IaC Scan (Checkov) | Checkov (Dockerfile / Compose) |
 
-See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate). CI/CD pipeline hardening is documented in [cicd-security.md](cicd-security.md).
+See [README.md - Pull Request Security Gate](../README.md#pull-request-security-gate). CI/CD pipeline hardening is documented in [cicd-security.md](cicd-security.md).
 
 ## Quick local verification
 

@@ -108,7 +108,7 @@
 | Test ID | Test | Endpoint | Expected | Observed | Result |
 |---------|------|----------|----------|----------|--------|
 | FUNDS-01 | Transfer exceeds balance (≥ £1000) | `POST /transactions` amount=1500, balance=100 | 400 insufficient funds | 400 insufficient funds | PASS |
-| FUNDS-02 | Transfer exceeds balance (< £1000) | `POST /transactions` amount=500, balance=100 | 400 insufficient funds | **201 — balance goes negative** | **FAIL (VULN-004)** |
+| FUNDS-02 | Transfer exceeds balance (< £1000) | `POST /transactions` amount=500, balance=100 | 400 insufficient funds | **201 - balance goes negative** | **FAIL (VULN-004)** |
 | FUNDS-03 | Valid transfer within balance | `POST /transactions` amount=50, balance=100 | 201 | 201 | PASS |
 | FUNDS-04 | Failed large transfer leaves balances unchanged | `POST /transactions` | No change | No change | PASS |
 | FUNDS-05 | Failed micro transfer leaves balances unchanged | `POST /transactions` | No change | **Balances changed (overdraft)** | **FAIL (VULN-004)** |

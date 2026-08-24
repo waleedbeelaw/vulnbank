@@ -12,12 +12,12 @@ The profile update endpoint accepts arbitrary `display_name` content. The profil
 
 ## Affected Endpoints
 
-- `PUT /users/me/profile` — source (stores user input)
-- `GET /profile/<id>/view` — sink (renders stored value as HTML)
+- `PUT /users/me/profile` - source (stores user input)
+- `GET /profile/<id>/view` - sink (renders stored value as HTML)
 
 ## Root Cause
 
-**Source:** `app/routes/profile.py` — `update_profile()` saves `display_name` without sanitisation.
+**Source:** `app/routes/profile.py` - `update_profile()` saves `display_name` without sanitisation.
 
 **Storage:** `users.display_name` column in PostgreSQL/SQLite.
 
@@ -58,12 +58,12 @@ This lab uses a harmless `alert()` proof of concept only.
 
 - Execute JavaScript in the victim's browser context
 - Demonstrate how stored user content can become an execution sink
-- In real applications, XSS can lead to session abuse — this lab does not implement cookie theft payloads
+- In real applications, XSS can lead to session abuse - this lab does not implement cookie theft payloads
 
 ## OWASP Category
 
-- [OWASP Top 10 — A03:2021 Injection (XSS)](https://owasp.org/Top10/A03_2021-Injection/)
-- [OWASP API Security Top 10 — API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
+- [OWASP Top 10 - A03:2021 Injection (XSS)](https://owasp.org/Top10/A03_2021-Injection/)
+- [OWASP API Security Top 10 - API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/)
 
 ## Remediation
 

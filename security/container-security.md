@@ -18,7 +18,7 @@ The application image creates a dedicated `vulnbank` user (UID/GID 1000) and run
 | Surface | Decision |
 |---------|----------|
 | App port | `5000` published to localhost for API access |
-| PostgreSQL | **Not** published to the host — reachable only on the Compose network as `db` |
+| PostgreSQL | **Not** published to the host - reachable only on the Compose network as `db` |
 | Privileged mode | Not used |
 | Docker socket | Not mounted |
 | Host bind mounts | Not used (named volume for PostgreSQL data only) |
@@ -34,13 +34,13 @@ The database runs in a separate Compose service on an internal network. The appl
 
 ## Image scanning (CI)
 
-The GitHub Actions job **PR Security Gate — Container Scan (Trivy)**:
+The GitHub Actions job **PR Security Gate - Container Scan (Trivy)**:
 
 1. Builds `vulnbank:ci` from the [Dockerfile](../Dockerfile)
 2. Scans the **built image** with Trivy (`scan-type: image`, `scanners: vuln`, `vuln-type: os,library`)
 3. Fails on **fixable** **HIGH** or **CRITICAL** vulnerabilities (`exit-code: 1`, `ignore-unfixed: true`)
 
-Secret scanning is handled separately by the **PR Security Gate — Secret Scan (Gitleaks)** job. Trivy is configured with `scanners: vuln` only to avoid duplicate secret detection, not to weaken coverage.
+Secret scanning is handled separately by the **PR Security Gate - Secret Scan (Gitleaks)** job. Trivy is configured with `scanners: vuln` only to avoid duplicate secret detection, not to weaken coverage.
 
 ### Trivy assessment summary (Step 14)
 
@@ -78,7 +78,7 @@ VulnBank gates on **fixable** HIGH/CRITICAL container vulnerabilities:
 
 | Finding type | CI behaviour |
 |--------------|--------------|
-| **Fixable** HIGH/CRITICAL (vendor Fixed Version available) | **FAIL** — PR blocked until remediated (typically via `apt-get upgrade` and image rebuild) |
+| **Fixable** HIGH/CRITICAL (vendor Fixed Version available) | **FAIL** - PR blocked until remediated (typically via `apt-get upgrade` and image rebuild) |
 | **Unfixed / vendor-deferred** HIGH/CRITICAL (no Fixed Version yet) | **Reported** in Trivy output; does **not** permanently block the PR |
 
 **Trivy settings:**
@@ -104,5 +104,5 @@ The container does **not** have zero vulnerabilities while vendor-unfixed HIGH/C
 
 ## Related documentation
 
-- [README.md — Docker](../README.md#docker)
+- [README.md - Docker](../README.md#docker)
 - [SECURITY.md](../SECURITY.md)

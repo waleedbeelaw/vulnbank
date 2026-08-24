@@ -58,8 +58,8 @@ This lab implementation is limited to `SELECT` on the local `users` table. No de
 
 ## OWASP Category
 
-- [OWASP API Security Top 10 — API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/) (unsafe defaults)
-- [OWASP Top 10 — A03:2021 Injection](https://owasp.org/Top10/A03_2021-Injection/)
+- [OWASP API Security Top 10 - API8:2023 Security Misconfiguration](https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/) (unsafe defaults)
+- [OWASP Top 10 - A03:2021 Injection](https://owasp.org/Top10/A03_2021-Injection/)
 
 ## Remediation
 

@@ -1,4 +1,4 @@
-# Business Logic — Micro-Transfer Solvency Bypass
+# Business Logic - Micro-Transfer Solvency Bypass
 
 ## Severity
 
@@ -56,7 +56,7 @@ Content-Type: application/json
 
 **Expected (secure):** `400 insufficient funds`
 
-**Actual (vulnerable):** `201 Created` — Alice's balance becomes `-400.00`, Bob receives £500.00.
+**Actual (vulnerable):** `201 Created` - Alice's balance becomes `-400.00`, Bob receives £500.00.
 
 ## Impact
 
@@ -67,8 +67,8 @@ Content-Type: application/json
 
 ## OWASP Category
 
-- [OWASP API Security Top 10 — API6:2023 Unrestricted Access to Sensitive Business Flows](https://owasp.org/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/)
-- [OWASP Top 10 — A04:2021 Insecure Design](https://owasp.org/Top10/A04_2021-Insecure_Design/)
+- [OWASP API Security Top 10 - API6:2023 Unrestricted Access to Sensitive Business Flows](https://owasp.org/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/)
+- [OWASP Top 10 - A04:2021 Insecure Design](https://owasp.org/Top10/A04_2021-Insecure_Design/)
 
 ## Remediation
 

@@ -11,7 +11,7 @@ VulnBank treats Dockerfile and Docker Compose as **Infrastructure-as-Code (IaC)*
 | Control | Implementation |
 |---------|----------------|
 | Non-root container | Dockerfile `USER vulnbank` (UID/GID 1000) |
-| Internal PostgreSQL | `db` service has **no** host port mapping — reachable only on the Compose network |
+| Internal PostgreSQL | `db` service has **no** host port mapping - reachable only on the Compose network |
 | Minimal exposed ports | Only app port `5000` published to the host |
 | No privileged mode | `privileged: true` not used |
 | No Docker socket | `/var/run/docker.sock` not mounted |
@@ -42,7 +42,7 @@ Gitleaks scans repository history for accidentally committed secrets. Checkov’
 
 **Tool:** Checkov **3.3.13** (pinned in `requirements-dev.txt`, installed in CI via pip).
 
-**CI job:** **PR Security Gate — IaC Scan (Checkov)**
+**CI job:** **PR Security Gate - IaC Scan (Checkov)**
 
 | Target | Framework | Scope |
 |--------|-----------|-------|
@@ -51,7 +51,7 @@ Gitleaks scans repository history for accidentally committed secrets. Checkov’
 
 Checkov runs with default fail behaviour (non-zero exit on failed checks). The job does **not** use `soft_fail`, `continue-on-error`, or broad `--skip-check` suppressions.
 
-Findings are **reviewed** — not blindly ignored. If a check is skipped in future, it must be scoped, commented, and listed under [Accepted findings](#accepted-findings).
+Findings are **reviewed** - not blindly ignored. If a check is skipped in future, it must be scoped, commented, and listed under [Accepted findings](#accepted-findings).
 
 Run locally:
 
@@ -79,4 +79,4 @@ Be accurate about VulnBank’s scope:
 
 - [container-security.md](container-security.md)
 - [security-logging.md](security-logging.md)
-- [README.md — Docker](../README.md#docker)
+- [README.md - Docker](../README.md#docker)

@@ -10,12 +10,12 @@ An authenticated user can transfer funds they do not possess for any amount belo
 
 **CWE-840: Business Logic Errors**
 
-Related: CWE-691 (Insufficient Control Flow Management), CWE-20 (Improper Input Validation — incomplete business rule)
+Related: CWE-691 (Insufficient Control Flow Management), CWE-20 (Improper Input Validation - incomplete business rule)
 
 ## OWASP Category
 
-**OWASP API Security Top 10 — API6:2023 Unrestricted Access to Sensitive Business Flows**  
-**OWASP Top 10 2021 — A04:2021 Insecure Design**
+**OWASP API Security Top 10 - API6:2023 Unrestricted Access to Sensitive Business Flows**  
+**OWASP Top 10 2021 - A04:2021 Insecure Design**
 
 ## Affected Component
 
@@ -112,7 +112,7 @@ No balance changes. No transaction record created.
 | Dimension | Impact |
 |-----------|--------|
 | **Confidentiality** | None |
-| **Integrity** | **High** — financial records corrupted; unbacked credits issued |
+| **Integrity** | **High** - financial records corrupted; unbacked credits issued |
 | **Availability** | None |
 
 An attacker can send up to £999.99 per transaction without possessing funds, repeatedly paying other users with money that does not exist in the source account.
@@ -121,7 +121,7 @@ An attacker can send up to £999.99 per transaction without possessing funds, re
 
 Financial integrity is the foundational property of a banking API. Solvency validation must apply uniformly to every transfer regardless of amount. A partial or threshold-based bypass creates a realistic fraud vector that would cause direct monetary loss in production.
 
-This finding demonstrates why business logic testing complements traditional security testing — input validation passes, authentication passes, authorisation passes, yet the transaction should still be rejected.
+This finding demonstrates why business logic testing complements traditional security testing - input validation passes, authentication passes, authorisation passes, yet the transaction should still be rejected.
 
 ## Recommended Remediation
 
@@ -175,14 +175,14 @@ The check executes after source-account authorisation and currency validation, a
 
 The following regression tests confirm the fix:
 
-- `tests/test_transactions.py::test_insufficient_funds_rejected` — overdraft attempt returns 400
-- `tests/test_transactions.py::test_failed_transfer_does_not_modify_source_balance` — source balance unchanged on failure
-- `tests/test_transactions.py::test_failed_transfer_does_not_modify_destination_balance` — destination balance unchanged on failure
-- `tests/test_transactions.py::test_failed_transfer_does_not_create_record` — no transaction record on failure
-- `tests/test_vulnerabilities.py::test_business_logic_remediation_micro_transfer_overdraft_rejected` — £100 → £500 fails
-- `tests/test_vulnerabilities.py::test_business_logic_remediation_exact_balance_transfer_succeeds` — £100 → £100 succeeds
-- `tests/test_vulnerabilities.py::test_business_logic_remediation_sub_limit_transfer_succeeds` — £100 → £99.99 succeeds
-- `tests/test_vulnerabilities.py::test_business_logic_remediation_failed_transfer_creates_no_record` — no record after failed £500 transfer
+- `tests/test_transactions.py::test_insufficient_funds_rejected` - overdraft attempt returns 400
+- `tests/test_transactions.py::test_failed_transfer_does_not_modify_source_balance` - source balance unchanged on failure
+- `tests/test_transactions.py::test_failed_transfer_does_not_modify_destination_balance` - destination balance unchanged on failure
+- `tests/test_transactions.py::test_failed_transfer_does_not_create_record` - no transaction record on failure
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_micro_transfer_overdraft_rejected` - £100 → £500 fails
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_exact_balance_transfer_succeeds` - £100 → £100 succeeds
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_sub_limit_transfer_succeeds` - £100 → £99.99 succeeds
+- `tests/test_vulnerabilities.py::test_business_logic_remediation_failed_transfer_creates_no_record` - no record after failed £500 transfer
 
 Manual retest: Alice with £100 transfers £500 → HTTP 400 `{"error": "insufficient funds"}`; balances unchanged.
 

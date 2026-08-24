@@ -10,20 +10,20 @@
 | **SCA** (pip-audit) | Build time | Dependencies |
 | **DAST** (OWASP ZAP + regression script) | Run time | Live HTTP behaviour on localhost |
 
-DAST can reveal issues visible only when components interact — routing, authentication enforcement, response encoding, and server configuration — that static analysis may miss.
+DAST can reveal issues visible only when components interact - routing, authentication enforcement, response encoding, and server configuration - that static analysis may miss.
 
 ## Why OWASP ZAP?
 
 [OWASP ZAP](https://www.zaproxy.org/) is an open-source DAST tool widely used in DevSecOps pipelines. VulnBank runs ZAP from the official container image (`ghcr.io/zaproxy/zaproxy:stable`) in GitHub Actions so developers do not need a local ZAP installation.
 
-The scan target is **always** `http://127.0.0.1:5000` — the VulnBank instance started inside the CI job. No external or production systems are scanned.
+The scan target is **always** `http://127.0.0.1:5000` - the VulnBank instance started inside the CI job. No external or production systems are scanned.
 
 ## What is tested?
 
 VulnBank DAST uses **two complementary layers**:
 
-1. **OWASP ZAP baseline** — unauthenticated spidering and **passive** scanning
-2. **`regression_checks.py`** — targeted authenticated HTTP checks for previously remediated flaws
+1. **OWASP ZAP baseline** - unauthenticated spidering and **passive** scanning
+2. **`regression_checks.py`** - targeted authenticated HTTP checks for previously remediated flaws
 
 ### OWASP ZAP baseline scan (spider + passive only)
 
@@ -33,29 +33,29 @@ VulnBank DAST uses **two complementary layers**:
 2. Runs **passive** scan rules against observed traffic
 3. Reports findings according to [`zap-baseline.conf`](zap-baseline.conf)
 
-It does **not** actively inject SQL injection, path traversal, or XSS attack payloads. Rules in the config file marked **FAIL** for active-scan rule IDs (e.g. SQL injection) do **not** mean ZAP baseline performs those attacks — they would only fail CI if passive analysis somehow raised that alert. In practice, baseline blocking relies on passive findings such as **stored XSS** in HTML responses and **application error disclosure**.
+It does **not** actively inject SQL injection, path traversal, or XSS attack payloads. Rules in the config file marked **FAIL** for active-scan rule IDs (e.g. SQL injection) do **not** mean ZAP baseline performs those attacks - they would only fail CI if passive analysis somehow raised that alert. In practice, baseline blocking relies on passive findings such as **stored XSS** in HTML responses and **application error disclosure**.
 
-Browser security header gaps (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy, Cache-Control, server version disclosure) are **not** globally suppressed. With `-I`, they appear as **WARN** in ZAP reports for visibility — relevant because VulnBank serves an HTML profile view — but they do not block the PR gate.
+Browser security header gaps (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy, Cache-Control, server version disclosure) are **not** globally suppressed. With `-I`, they appear as **WARN** in ZAP reports for visibility - relevant because VulnBank serves an HTML profile view - but they do not block the PR gate.
 
 #### Rule actions and CI failure (`-I`)
 
 | Action | CI effect (with `-I`) |
 |--------|------------------------|
-| **FAIL** | Finding fails the job (exit code 1) — blocks the PR security gate |
+| **FAIL** | Finding fails the job (exit code 1) - blocks the PR security gate |
 | **WARN** | Reported in output/reports but does **not** fail CI |
-| **IGNORE** | Suppressed — only for findings genuinely inapplicable to localhost CI |
+| **IGNORE** | Suppressed - only for findings genuinely inapplicable to localhost CI |
 
 The workflow runs `zap-baseline.py` with **`-I`** (*do not return failure on warning*). Unlisted rules default to **WARN** and remain visible without blocking merge.
 
-**Note:** `-l` sets the minimum *rule action level to display* (`PASS`, `IGNORE`, `INFO`, `WARN`, `FAIL`) — it is **not** a CVSS/severity threshold. Do not pass values such as `MEDIUM`; they cause exit code 3.
+**Note:** `-l` sets the minimum *rule action level to display* (`PASS`, `IGNORE`, `INFO`, `WARN`, `FAIL`) - it is **not** a CVSS/severity threshold. Do not pass values such as `MEDIUM`; they cause exit code 3.
 
 #### IGNORE rules (narrow)
 
 | Rule | Why IGNORE is justified |
 |------|-------------------------|
-| 10035 HSTS | CI scans `http://127.0.0.1` only — no TLS |
+| 10035 HSTS | CI scans `http://127.0.0.1` only - no TLS |
 | 10096 Timestamp disclosure | Intentional `created_at` fields in JSON API responses |
-| 10202 Anti-CSRF | Stateless JWT Bearer API — not cookie-form CSRF |
+| 10202 Anti-CSRF | Stateless JWT Bearer API - not cookie-form CSRF |
 
 #### FAIL rules (passive gate)
 
@@ -87,14 +87,14 @@ JWTs are obtained via `POST /login` at runtime. Tokens are **not** committed and
 
 ## CI job architecture
 
-The workflow job **PR Security Gate — DAST (OWASP ZAP)** in [`.github/workflows/security.yml`](../../.github/workflows/security.yml):
+The workflow job **PR Security Gate - DAST (OWASP ZAP)** in [`.github/workflows/security.yml`](../../.github/workflows/security.yml):
 
 1. Checks out the repository
 2. Sets up Python 3.12 and installs dependencies
 3. Starts VulnBank with [`start_ci_server.py`](start_ci_server.py) (SQLite, CI-only secret)
 4. Waits for [`wait_for_health.py`](wait_for_health.py) to confirm `GET /health`
-5. Runs OWASP ZAP baseline scan via Docker (`--network host`) — spider + passive only
-6. Runs [`regression_checks.py`](regression_checks.py) — targeted authenticated checks
+5. Runs OWASP ZAP baseline scan via Docker (`--network host`) - spider + passive only
+6. Runs [`regression_checks.py`](regression_checks.py) - targeted authenticated checks
 7. Stops the application (even if a step fails)
 8. Uploads ZAP reports as workflow artifacts on failure
 
@@ -113,11 +113,11 @@ Seeded CI users (`dast_alice`, `dast_bob`) exist only in the ephemeral SQLite da
 Docker is required for the ZAP scan. On Windows/Linux/macOS:
 
 ```powershell
-# Terminal 1 — start CI-style server
+# Terminal 1 - start CI-style server
 $env:DAST_JWT_SECRET_KEY = "ci-dast-only-secret-not-for-production-use!"
 python security/dast/start_ci_server.py
 
-# Terminal 2 — wait, scan, regression checks
+# Terminal 2 - wait, scan, regression checks
 python security/dast/wait_for_health.py
 docker run --rm --network host -v ${PWD}:/zap/wrk:rw ghcr.io/zaproxy/zaproxy:stable `
   zap-baseline.py -t http://127.0.0.1:5000 `
@@ -133,4 +133,4 @@ If Docker is unavailable, run the server and `regression_checks.py` only; ZAP mu
 
 ## Branch protection
 
-After merge, administrators may add **PR Security Gate — DAST (OWASP ZAP)** as a fifth required status check alongside the existing four security gates.
+After merge, administrators may add **PR Security Gate - DAST (OWASP ZAP)** as a fifth required status check alongside the existing four security gates.

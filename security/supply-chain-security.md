@@ -40,7 +40,7 @@ Gitleaks          →  were secrets committed?
 
 ### What is an SBOM?
 
-A **Software Bill of Materials** is a structured inventory of components in a software artifact — packages, libraries, and operating-system files discovered in a container image.
+A **Software Bill of Materials** is a structured inventory of components in a software artifact - packages, libraries, and operating-system files discovered in a container image.
 
 ### Why CycloneDX?
 
@@ -62,7 +62,7 @@ SBOMs are **point-in-time** records for a specific image build and commit. Stori
 
 ### SBOM is not a vulnerability scanner
 
-The **PR Security Gate — SBOM (Syft)** job validates that inventory generation succeeded and that the CycloneDX document is structurally sound. It does **not** replace:
+The **PR Security Gate - SBOM (Syft)** job validates that inventory generation succeeded and that the CycloneDX document is structurally sound. It does **not** replace:
 
 - **pip-audit** for declared Python dependency CVEs
 - **Trivy** for container vulnerability gating
@@ -109,4 +109,4 @@ Be accurate about what VulnBank does **not** implement:
 
 - [dependency-management.md](dependency-management.md)
 - [container-security.md](container-security.md)
-- [README.md — DevSecOps / CI Security](../README.md#devsecops--ci-security)
+- [README.md - DevSecOps / CI Security](../README.md#devsecops--ci-security)

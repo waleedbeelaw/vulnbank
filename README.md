@@ -1,8 +1,8 @@
 # VulnBank
 
-VulnBank is an educational **Application Security / DevSecOps portfolio project** built around a realistic fintech REST API (Flask, PostgreSQL, JWT). It is **not** a production banking product — it exists to show how security engineering is applied across the full software lifecycle.
+VulnBank is an educational **Application Security / DevSecOps portfolio project** built around a realistic fintech REST API (Flask, PostgreSQL, JWT). It is **not** a production banking product - it exists to show how security engineering is applied across the full software lifecycle.
 
-**Why it exists:** The project walks from a secure baseline through a deliberately vulnerable lab, structured assessment, root-cause remediation, automated regression testing, and layered CI security gates — the same narrative a security engineer would tell in an interview or code review.
+**Why it exists:** The project walks from a secure baseline through a deliberately vulnerable lab, structured assessment, root-cause remediation, automated regression testing, and layered CI security gates - the same narrative a security engineer would tell in an interview or code review.
 
 **Current state (`vulnerable-lab`):** Four intentional lab vulnerabilities (IDOR, SQL injection, stored XSS, business-logic bypass) were introduced, assessed, and **remediated**. The codebase is protected by **125 pytest tests** and **eight required PR security gates**.
 
@@ -77,9 +77,9 @@ VulnBank uses **PostgreSQL** as its database. **SQLAlchemy** (via Flask-SQLAlche
 
 The database stores three core fintech models:
 
-- **User** — account holders
-- **Account** — bank accounts linked to a user
-- **Transaction** — transfer records between two accounts
+- **User** - account holders
+- **Account** - bank accounts linked to a user
+- **Transaction** - transfer records between two accounts
 
 ### Initialise database tables
 
@@ -145,7 +145,7 @@ docker compose up --build
 
 ### Development-only credentials
 
-`docker-compose.yml` uses **DEVELOPMENT-ONLY EXAMPLE CREDENTIALS** (override via environment variables or `.env`; defaults such as `vulnbank-dev-password` and `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host — only the app port `5000` is published. See [security/deployment-security.md](security/deployment-security.md).
+`docker-compose.yml` uses **DEVELOPMENT-ONLY EXAMPLE CREDENTIALS** (override via environment variables or `.env`; defaults such as `vulnbank-dev-password` and `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host - only the app port `5000` is published. See [security/deployment-security.md](security/deployment-security.md).
 
 See [security/container-security.md](security/container-security.md) for container security decisions.
 
@@ -204,20 +204,20 @@ Each pull request should pass all eight security checks before it is considered 
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
-| PR Security Gate — Test Suite (pytest) | pytest | Functional behaviour, security regression, and audit-logging tests |
-| PR Security Gate — SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
-| PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
-| PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
-| PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
-| PR Security Gate — Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
-| PR Security Gate — SBOM (Syft) | Syft | Builds the container image, generates a CycloneDX SBOM with Syft, validates the inventory, and retains it as a CI artifact |
-| PR Security Gate — IaC Scan (Checkov) | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment/configuration settings |
+| PR Security Gate - Test Suite (pytest) | pytest | Functional behaviour, security regression, and audit-logging tests |
+| PR Security Gate - SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
+| PR Security Gate - SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
+| PR Security Gate - Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
+| PR Security Gate - DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
+| PR Security Gate - Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
+| PR Security Gate - SBOM (Syft) | Syft | Builds the container image, generates a CycloneDX SBOM with Syft, validates the inventory, and retains it as a CI artifact |
+| PR Security Gate - IaC Scan (Checkov) | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment/configuration settings |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
 ### Enforcing the gate with branch protection
 
-The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all eight **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
+The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md - Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all eight **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
 
 Until branch protection is enabled, checks run and report results but GitHub may still allow a merge when checks fail.
 
@@ -312,13 +312,13 @@ These endpoints require a valid JWT:
 
 ### Ownership rules
 
-- `GET /users/<id>` — users can only view their **own** profile (`403` for other users)
-- `GET /users/<id>/accounts` — users can only list **their own** accounts (`403` for other users)
-- `GET /accounts/<id>` — users can only view **their own** accounts (`403` for other users)
-- `POST /accounts` — account is always created for the **authenticated user**; any `user_id` in the request body is ignored
-- `POST /transactions` — authenticated user must **own the source account**; destination may belong to another user
-- `GET /transactions/<id>` — only the sender or recipient can view a transaction
-- `GET /accounts/<id>/transactions` — only the account owner can view transaction history
+- `GET /users/<id>` - users can only view their **own** profile (`403` for other users)
+- `GET /users/<id>/accounts` - users can only list **their own** accounts (`403` for other users)
+- `GET /accounts/<id>` - users can only view **their own** accounts (`403` for other users)
+- `POST /accounts` - account is always created for the **authenticated user**; any `user_id` in the request body is ignored
+- `POST /transactions` - authenticated user must **own the source account**; destination may belong to another user
+- `GET /transactions/<id>` - only the sender or recipient can view a transaction
+- `GET /accounts/<id>/transactions` - only the account owner can view transaction history
 
 The current user is always determined from the JWT `sub` claim, never from request body parameters.
 
@@ -363,7 +363,7 @@ Response (`201 Created`):
 - Amount must be greater than zero
 - Source account must have sufficient funds
 - Source and destination must be different accounts
-- Transfers are **atomic** — balance updates and the transaction record commit or roll back together
+- Transfers are **atomic** - balance updates and the transaction record commit or roll back together
 - Row locking on the source account prevents concurrent double-spending
 
 ### Get a transaction

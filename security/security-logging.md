@@ -114,9 +114,9 @@ Be accurate about VulnBank's scope:
 - A real production deployment would normally **forward** logs to centralized storage with retention and access controls
 - **Retention and access control** for financial audit logs are deployment and governance concerns
 - VulnBank **does not implement a SIEM** or log aggregation platform
-- The optional `LOG_LEVEL` environment variable adjusts logger verbosity but security audit events are emitted at `INFO`; lowering log level below `INFO` would suppress audit output — document and avoid in production
+- The optional `LOG_LEVEL` environment variable adjusts logger verbosity but security audit events are emitted at `INFO`; lowering log level below `INFO` would suppress audit output - document and avoid in production
 
 ## Related documentation
 
-- [README.md — Security](../README.md#security-policy-and-documentation)
+- [README.md - Security](../README.md#security-policy-and-documentation)
 - [security/README.md](README.md)
