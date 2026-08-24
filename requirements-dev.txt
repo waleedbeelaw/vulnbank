@@ -2,5 +2,5 @@
 
 # Development / CI security tooling (not installed in the Docker image)
 bandit>=1.7.0
-pip-audit>=2.7.0
+pip-audit>=2.10.1
 checkov==3.3.13
