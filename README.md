@@ -82,6 +82,25 @@ pytest
 
 Tests use an isolated in-memory SQLite database and a test JWT secret, so they do not require PostgreSQL or real credentials.
 
+## DevSecOps / CI Security
+
+Every push and pull request triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
+
+| Job | Tool | Purpose |
+|-----|------|---------|
+| Python Test Suite | pytest | Run the full test suite, including vulnerability remediation regression tests |
+| SAST (Bandit) | Bandit | Static analysis of `app/` for common Python security issues |
+| Dependency Vulnerability Scan | pip-audit | Check declared dependencies in `requirements.txt` against known CVEs |
+| Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
+
+Run the same checks locally:
+
+```powershell
+pytest -v
+bandit -r app/ -ll
+pip-audit -r requirements.txt
+```
+
 ## Authentication
 
 VulnBank uses **JWT (JSON Web Token)** authentication via the PyJWT library.

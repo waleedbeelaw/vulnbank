@@ -4,3 +4,7 @@ PyJWT>=2.8.0
 pytest>=8.0.0
 python-dotenv>=1.0.0
 psycopg2-binary>=2.9.0
+
+# CI / security tooling (DevSecOps pipeline and local checks)
+bandit>=1.7.0
+pip-audit>=2.7.0
