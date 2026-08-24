@@ -108,3 +108,68 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # 5. DAST — dynamic application security testing (OWASP ZAP)
+  # ---------------------------------------------------------------------------
+  dast:
+    name: PR Security Gate — DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    env:
+      DAST_JWT_SECRET_KEY: ci-dast-only-secret-not-for-production-use!
+      DAST_DATABASE_URL: sqlite:////tmp/vulnbank_dast.sqlite
+      DAST_BASE_URL: http://127.0.0.1:5000
+    steps:
+      - name: Check out pull request code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install project dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start VulnBank for DAST (isolated SQLite, CI-only secret)
+        run: |
+          python security/dast/start_ci_server.py &
+          echo $! > dast-server.pid
+
+      - name: Wait until GET /health responds successfully
+        run: python security/dast/wait_for_health.py
+
+      - name: Run OWASP ZAP baseline scan against localhost
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://127.0.0.1:5000 \
+            -J /zap/wrk/zap-report.json \
+            -r /zap/wrk/zap-report.html \
+            -w /zap/wrk/zap-report.md \
+            -c /zap/wrk/security/dast/zap-baseline.conf \
+            -l MEDIUM
+
+      - name: Run authenticated DAST regression checks
+        run: python security/dast/regression_checks.py
+
+      - name: Stop VulnBank
+        if: always()
+        run: |
+          if [ -f dast-server.pid ]; then
+            kill "$(cat dast-server.pid)" || true
+          fi
+
+      - name: Upload ZAP reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-dast-reports
+          path: |
+            zap-report.json
+            zap-report.html
+            zap-report.md

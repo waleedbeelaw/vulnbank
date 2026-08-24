@@ -92,6 +92,7 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | SAST (Bandit) | Bandit | Static analysis of `app/` for common Python security issues |
 | Dependency Vulnerability Scan | pip-audit | Check declared dependencies in `requirements.txt` against known CVEs |
 | Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
+| DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
 
 Run the same checks locally:
 
@@ -101,6 +102,8 @@ bandit -r app/ -ll
 pip-audit -r requirements.txt
 ```
 
+DAST requires Docker for the ZAP scan. See [security/dast/README.md](security/dast/README.md) for local instructions.
+
 ## Pull Request Security Gate
 
 VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab` branch. The GitHub Actions workflow in `.github/workflows/security.yml` runs automatically on:
@@ -108,7 +111,7 @@ VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab`
 - **Pushes** to `vulnerable-lab`
 - **Pull requests** targeting `vulnerable-lab`
 
-Each pull request should pass all four security checks before it is considered approved for merge:
+Each pull request should pass all five security checks before it is considered approved for merge:
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
@@ -116,6 +119,7 @@ Each pull request should pass all four security checks before it is considered a
 | PR Security Gate — SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
 | PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
+| PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
