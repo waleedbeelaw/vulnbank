@@ -146,6 +146,9 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
 | DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
 | Container Scan | Trivy | Blocks **fixable** HIGH/CRITICAL vulnerabilities in the built Docker image |
+| SBOM | Syft (Anchore SBOM Action) | Generates and validates a CycloneDX inventory from the built container image |
+
+See [security/supply-chain-security.md](security/supply-chain-security.md) for SBOM purpose, CI flow, and limitations.
 
 Run the same checks locally:
 
@@ -165,7 +168,7 @@ VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab`
 - **Pushes** to `vulnerable-lab`
 - **Pull requests** targeting `vulnerable-lab`
 
-Each pull request should pass all six security checks before it is considered approved for merge:
+Each pull request should pass all seven security checks before it is considered approved for merge:
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
@@ -175,12 +178,13 @@ Each pull request should pass all six security checks before it is considered ap
 | PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
 | PR Security Gate — Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
+| PR Security Gate — SBOM (Syft) | Syft | Builds the container image, generates a CycloneDX SBOM with Syft, validates the inventory, and retains it as a CI artifact |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
 ### Enforcing the gate with branch protection
 
-The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all four **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
+The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all seven **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
 
 Until branch protection is enabled, checks run and report results but GitHub may still allow a merge when checks fail.
 
@@ -192,6 +196,7 @@ VulnBank documents its security governance alongside technical controls:
 |----------|---------|
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting, responsible disclosure, and project scope |
 | [security/dependency-management.md](security/dependency-management.md) | Dependency scanning with pip-audit and upgrade workflow |
+| [security/supply-chain-security.md](security/supply-chain-security.md) | SBOM generation (Syft/CycloneDX), supply-chain controls, and CI artifacts |
 | [security/assessment.md](security/assessment.md) | Step 7 application security assessment |
 | [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
 | [security/README.md](security/README.md) | Security documentation index and lifecycle overview |
