@@ -2,6 +2,7 @@ from sqlalchemy import or_
 
 from app.extensions import db
 from app.models import Account, Transaction
+from app.security_logging import log_security_event
 
 
 class TransferError(Exception):
@@ -33,6 +34,14 @@ def create_transfer(from_account_id, to_account_id, amount, currency, user_id):
             raise TransferError("source account not found", 404)
 
         if source.user_id != user_id:
+            log_security_event(
+                "transaction.rejected",
+                outcome="denied",
+                user_id=user_id,
+                resource_type="account",
+                resource_id=from_account_id,
+                reason="source_account_ownership",
+            )
             raise TransferError("Forbidden", 403)
 
         destination = db.session.get(Account, to_account_id)
@@ -40,9 +49,25 @@ def create_transfer(from_account_id, to_account_id, amount, currency, user_id):
             raise TransferError("destination account not found", 404)
 
         if source.currency != currency or destination.currency != currency:
+            log_security_event(
+                "transaction.rejected",
+                outcome="denied",
+                user_id=user_id,
+                resource_type="account",
+                resource_id=from_account_id,
+                reason="currency_mismatch",
+            )
             raise TransferError("currency mismatch", 400)
 
         if source.balance < amount:
+            log_security_event(
+                "transaction.rejected",
+                outcome="denied",
+                user_id=user_id,
+                resource_type="account",
+                resource_id=from_account_id,
+                reason="insufficient_funds",
+            )
             raise TransferError("insufficient funds", 400)
 
         source.balance -= amount
@@ -56,6 +81,14 @@ def create_transfer(from_account_id, to_account_id, amount, currency, user_id):
         )
         db.session.add(transaction)
         db.session.commit()
+
+        log_security_event(
+            "transaction.created",
+            outcome="success",
+            user_id=user_id,
+            resource_type="transaction",
+            resource_id=transaction.id,
+        )
         return transaction
     except TransferError:
         db.session.rollback()
@@ -75,6 +108,14 @@ def get_transaction_for_user(transaction_id, user_id):
     destination = db.session.get(Account, transaction.to_account_id)
 
     if source.user_id != user_id and destination.user_id != user_id:
+        log_security_event(
+            "authorization.denied",
+            outcome="denied",
+            user_id=user_id,
+            resource_type="transaction",
+            resource_id=transaction_id,
+            reason="transaction_access",
+        )
         raise TransferError("Forbidden", 403)
 
     return transaction
@@ -87,6 +128,14 @@ def get_account_transactions(account_id, user_id):
         raise TransferError("account not found", 404)
 
     if account.user_id != user_id:
+        log_security_event(
+            "authorization.denied",
+            outcome="denied",
+            user_id=user_id,
+            resource_type="account",
+            resource_id=account_id,
+            reason="transaction_history_access",
+        )
         raise TransferError("Forbidden", 403)
 
     return (

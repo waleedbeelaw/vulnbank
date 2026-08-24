@@ -13,6 +13,7 @@ class Config:
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRATION_SECONDS = 3600
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
     @staticmethod
     def validate():
