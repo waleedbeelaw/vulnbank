@@ -121,6 +121,18 @@ If any check fails, the workflow fails and the pull request is **not** security-
 
 To enforce this in GitHub, enable branch protection on `vulnerable-lab` and require the four **PR Security Gate** status checks to pass before merging.
 
+## Security policy and documentation
+
+VulnBank documents its security governance alongside technical controls:
+
+| Document | Purpose |
+|----------|---------|
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting, responsible disclosure, and project scope |
+| [security/dependency-management.md](security/dependency-management.md) | Dependency scanning with pip-audit and upgrade workflow |
+| [security/assessment.md](security/assessment.md) | Step 7 application security assessment |
+| [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
+| [security/README.md](security/README.md) | Security documentation index and lifecycle overview |
+
 ## Authentication
 
 VulnBank uses **JWT (JSON Web Token)** authentication via the PyJWT library.

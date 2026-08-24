@@ -1,80 +1,60 @@
-# VulnBank Security Lab
+# VulnBank Security Documentation
 
-This directory documents the **intentionally vulnerable** version of VulnBank running on the `vulnerable-lab` Git branch.
+This directory contains the Application Security lifecycle demonstrated by the VulnBank portfolio project.
 
-## Purpose
+## Security lifecycle
 
-The vulnerable lab exists for **local educational AppSec testing only**. It supports:
-
-- Manual vulnerability verification
-- Code review practice
-- Future SAST/DAST tool evaluation (Step 9)
-- Remediation and regression testing
-
-## SECURE BASELINE vs VULNERABLE LAB
-
-| Branch           | Purpose                                      |
-|------------------|----------------------------------------------|
-| `main`           | Secure baseline — no intentional flaws       |
-| `vulnerable-lab` | Intentional vulnerabilities for local testing |
-
-**Never deploy `vulnerable-lab` to a public environment.**
-
-## Current vulnerabilities
-
-| ID | Name            | Endpoint(s)                          | File                                      |
-|----|-----------------|--------------------------------------|-------------------------------------------|
-| 1  | IDOR / BOLA     | `GET /accounts/<id>`                 | `app/routes/accounts.py`                  |
-| 2  | SQL Injection   | `GET /search/users?q=`               | `app/routes/search.py`                    |
-| 3  | Stored XSS      | `PUT /users/me/profile`, `GET /profile/<id>/view` | `app/routes/profile.py`      |
-| 4  | Business Logic  | `POST /transactions`                 | `app/services/transactions.py`              |
-
-See `security/vulnerabilities/` for detailed reports.
-
-## Running locally
-
-```powershell
-cd C:\Users\main\Desktop\VulnBank
-git checkout vulnerable-lab
-.venv\Scripts\activate
-pip install -r requirements.txt
-python init_db.py
-python run.py
+```
+Vulnerability introduction (Step 6)
+         ↓
+Security assessment (Step 7)
+         ↓
+Remediation (Step 8)
+         ↓
+Automated regression testing (pytest)
+         ↓
+CI security gates (GitHub Actions)
 ```
 
-The API runs at `http://127.0.0.1:5000`.
+Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewers can follow the full AppSec story.
 
-## Running tests
+## Documentation index
+
+| Document | Description |
+|----------|-------------|
+| [../SECURITY.md](../SECURITY.md) | Security policy — reporting, disclosure, scope |
+| [dependency-management.md](dependency-management.md) | Dependency scanning with pip-audit |
+| [assessment.md](assessment.md) | Step 7 AppSec assessment summary |
+| [remediation.md](remediation.md) | Step 8 remediation summary (all findings **Remediated**) |
+| [test-matrix.md](test-matrix.md) | Structured manual test cases |
+| [findings/](findings/) | Per-finding reports (VULN-001 … VULN-004) with remediation status |
+| [vulnerabilities/](vulnerabilities/) | Original lab vulnerability descriptions (historical) |
+
+## CI security gates
+
+Pull requests targeting `vulnerable-lab` must pass four checks defined in [`.github/workflows/security.yml`](../.github/workflows/security.yml):
+
+| Gate | Tool |
+|------|------|
+| Test Suite | pytest |
+| SAST | Bandit |
+| SCA | pip-audit |
+| Secret Scan | Gitleaks |
+
+See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate).
+
+## Quick local verification
 
 ```powershell
-pytest
+pytest -v
+bandit -r app/ -ll
+pip-audit -r requirements.txt
 ```
 
-- **Regression tests** (Steps 1–5) should continue to pass, except tests marked `xfail` where they conflict with intentional flaws.
-- **Vulnerability tests** in `tests/test_vulnerabilities.py` demonstrate insecure behaviour and should **fail after remediation**.
+## Lab safety
 
-## Resetting the local database
-
-If you need a clean database:
-
-1. Drop and recreate the PostgreSQL database `vulnbank`, or
-2. Connect with psql and run `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`
-3. Run `python init_db.py` again
-
-For tests, pytest uses an in-memory SQLite database automatically — no reset needed.
-
-## Safety rules
-
-- Localhost only
+- Localhost development only
 - No real credentials in the repository
-- No destructive SQL payloads in documentation or tests
-- No malware, token theft, or external targeting
-- Do not push this branch unless explicitly required for your lab setup
+- Not intended for production deployment
 
-## Remediation workflow (future steps)
-
-1. Read the vulnerability report in `security/vulnerabilities/`
-2. Fix the root cause in code
-3. Confirm the vulnerability test now fails (expects secure behaviour)
-4. Remove the `xfail` marker from conflicting regression tests
-5. Re-run the full test suite
+See [../SECURITY.md](../SECURITY.md) for full reporting and disclosure guidance.
