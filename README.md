@@ -122,7 +122,7 @@ docker compose up --build
 
 ### Development-only credentials
 
-`docker-compose.yml` uses fake credentials (`vulnbank-dev-password`, `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host — only the app port `5000` is published.
+`docker-compose.yml` uses **DEVELOPMENT-ONLY EXAMPLE CREDENTIALS** (override via environment variables or `.env`; defaults such as `vulnbank-dev-password` and `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host — only the app port `5000` is published. See [security/deployment-security.md](security/deployment-security.md).
 
 See [security/container-security.md](security/container-security.md) for container security decisions.
 
@@ -147,8 +147,11 @@ Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab`
 | DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
 | Container Scan | Trivy | Blocks **fixable** HIGH/CRITICAL vulnerabilities in the built Docker image |
 | SBOM | Syft (Anchore SBOM Action) | Generates and validates a CycloneDX inventory from the built container image |
+| IaC / configuration scanning | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment settings |
 
 Structured **security audit logging** (JSON events, request correlation IDs) is implemented in the application and verified by the existing pytest gate. See [security/security-logging.md](security/security-logging.md).
+
+See [security/deployment-security.md](security/deployment-security.md) for Docker/Compose hardening and Checkov scope.
 
 See [security/supply-chain-security.md](security/supply-chain-security.md) for SBOM purpose, CI flow, and limitations.
 
@@ -159,6 +162,8 @@ pip install -r requirements-dev.txt
 pytest -v
 bandit -r app/ -ll
 pip-audit -r requirements.txt
+checkov -f Dockerfile --framework dockerfile --compact
+checkov -f docker-compose.yml --framework yaml --compact
 ```
 
 DAST requires Docker for the ZAP scan. See [security/dast/README.md](security/dast/README.md) for local instructions.
@@ -170,7 +175,7 @@ VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab`
 - **Pushes** to `vulnerable-lab`
 - **Pull requests** targeting `vulnerable-lab`
 
-Each pull request should pass all seven security checks before it is considered approved for merge:
+Each pull request should pass all eight security checks before it is considered approved for merge:
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
@@ -181,12 +186,13 @@ Each pull request should pass all seven security checks before it is considered 
 | PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
 | PR Security Gate — Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
 | PR Security Gate — SBOM (Syft) | Syft | Builds the container image, generates a CycloneDX SBOM with Syft, validates the inventory, and retains it as a CI artifact |
+| PR Security Gate — IaC Scan (Checkov) | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment/configuration settings |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
 ### Enforcing the gate with branch protection
 
-The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all seven **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
+The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all eight **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
 
 Until branch protection is enabled, checks run and report results but GitHub may still allow a merge when checks fail.
 
@@ -200,6 +206,7 @@ VulnBank documents its security governance alongside technical controls:
 | [security/dependency-management.md](security/dependency-management.md) | Dependency scanning with pip-audit and upgrade workflow |
 | [security/supply-chain-security.md](security/supply-chain-security.md) | SBOM generation (Syft/CycloneDX), supply-chain controls, and CI artifacts |
 | [security/security-logging.md](security/security-logging.md) | Structured security audit logging, request IDs, and sensitive-data policy |
+| [security/deployment-security.md](security/deployment-security.md) | Docker/Compose hardening and Checkov IaC scanning |
 | [security/assessment.md](security/assessment.md) | Step 7 application security assessment |
 | [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
 | [security/README.md](security/README.md) | Security documentation index and lifecycle overview |

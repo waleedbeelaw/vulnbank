@@ -19,11 +19,11 @@ VulnBank is an **educational Application Security / DevSecOps portfolio project*
 | `main` | Secure baseline reference |
 | `vulnerable-lab` | Full lab history: vulnerability introduction → assessment → remediation → CI security gates |
 
-Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md).
+Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks, OWASP ZAP, Trivy, Syft SBOM, Checkov) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md).
 
 ## Branch Protection and Security Gates
 
-VulnBank is designed to demonstrate a **security-gated pull request workflow** on the `vulnerable-lab` branch. The CI pipeline in `.github/workflows/security.yml` runs seven jobs on every push and pull request targeting `vulnerable-lab`. When branch protection is configured, these jobs become **required status checks** that must pass before GitHub allows a merge.
+VulnBank is designed to demonstrate a **security-gated pull request workflow** on the `vulnerable-lab` branch. The CI pipeline in `.github/workflows/security.yml` runs eight jobs on every push and pull request targeting `vulnerable-lab`. When branch protection is configured, these jobs become **required status checks** that must pass before GitHub allows a merge.
 
 ### Required status checks (job names)
 
@@ -38,6 +38,7 @@ Repository administrators should require these exact GitHub Actions check names:
 | PR Security Gate — DAST (OWASP ZAP) |
 | PR Security Gate — Container Scan (Trivy) |
 | PR Security Gate — SBOM (Syft) |
+| PR Security Gate — IaC Scan (Checkov) |
 
 These names match the `name:` fields defined in `.github/workflows/security.yml`. After the workflow has run at least once on the branch, they appear under **Settings → Branches → Branch protection rules → Require status checks to pass**.
 
@@ -48,7 +49,7 @@ The following settings are **recommended** for `vulnerable-lab` in **Settings �
 | Setting | Recommendation |
 |---------|----------------|
 | **Require a pull request before merging** | Enabled — all changes enter through reviewable PRs |
-| **Require status checks to pass before merging** | Enabled — select all seven **PR Security Gate** checks listed above |
+| **Require status checks to pass before merging** | Enabled — select all eight **PR Security Gate** checks listed above |
 | **Require branches to be up to date before merging** | Enabled (recommended) — ensures checks ran against the latest base branch |
 | **Do not merge when checks fail** | Implicit when required checks are configured; a failing Security Pipeline must block merge |
 | **Restrict who can push to matching branches** | Enabled where appropriate — limits direct pushes that bypass PR workflow |
