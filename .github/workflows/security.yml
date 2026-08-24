@@ -189,10 +189,12 @@ jobs:
         run: docker build -t vulnbank:ci .
 
       - name: Scan image with Trivy (fail on HIGH or CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: vulnbank:ci
+          scan-type: image
+          vuln-type: os,library
           format: table
-          exit-code: 1
+          exit-code: "1"
           severity: HIGH,CRITICAL
           ignore-unfixed: false
