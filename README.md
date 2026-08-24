@@ -1,8 +1,31 @@
 # VulnBank
 
-VulnBank is a deliberately vulnerable fintech REST API being developed as an educational Application Security / DevSecOps portfolio project. The goal is to demonstrate secure development practices, vulnerability assessment, and remediation in a realistic API context.
+VulnBank is an educational **Application Security / DevSecOps portfolio project** built around a realistic fintech REST API (Flask, PostgreSQL, JWT). It is **not** a production banking product — it exists to show how security engineering is applied across the full software lifecycle.
 
-**Current status:** Step 5 — secure money transfers. Authenticated users can transfer funds between accounts with atomic balance updates, ownership checks, and currency validation. Intentional vulnerabilities have **not** been introduced yet.
+**Why it exists:** The project walks from a secure baseline through a deliberately vulnerable lab, structured assessment, root-cause remediation, automated regression testing, and layered CI security gates — the same narrative a security engineer would tell in an interview or code review.
+
+**Current state (`vulnerable-lab`):** Four intentional lab vulnerabilities (IDOR, SQL injection, stored XSS, business-logic bypass) were introduced, assessed, and **remediated**. The codebase is protected by **125 pytest tests** and **eight required PR security gates**.
+
+## Security Engineering Highlights
+
+| Area | What VulnBank demonstrates |
+|------|----------------------------|
+| Lab workflow | Deliberately vulnerable → assessed → remediated, with Git history preserved |
+| Regression testing | Authenticated security regression tests (`tests/test_vulnerabilities.py`) |
+| PR gates | Eight required checks on pull requests to `vulnerable-lab` |
+| DAST | OWASP ZAP baseline + authenticated regression checks |
+| SAST | Bandit on `app/` |
+| SCA | pip-audit on `requirements.txt` |
+| Secret scanning | Gitleaks v3 full-history scan |
+| Container scanning | Trivy (fixable HIGH/CRITICAL) |
+| SBOM | Syft CycloneDX JSON from the built container image |
+| IaC scanning | Checkov on Dockerfile and Compose |
+| Runtime hardening | Docker non-root user, internal PostgreSQL, Compose hardening |
+| Audit logging | Structured JSON security events with request correlation IDs |
+| CI/CD hardening | SHA-pinned GitHub Actions, least-privilege `contents: read`, Dependabot |
+| Branch workflow | Protected-branch model documented for `vulnerable-lab` |
+
+**Detailed security documentation:** [security/README.md](security/README.md) · [security/threat-model.md](security/threat-model.md) · [security/architecture.md](security/architecture.md) · [security/security-journey.md](security/security-journey.md)
 
 ## Setup (Windows)
 
@@ -74,13 +97,149 @@ python run.py
 
 The API will be available at `http://127.0.0.1:5000`.
 
+## Docker
+
+Run VulnBank with Docker Compose (requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine + Compose).
+
+### Prerequisites
+
+- Docker with Compose v2
+- Port `5000` available on localhost
+
+### Quick start (one command)
+
+```powershell
+docker compose up --build
+```
+
+The entrypoint runs `init_db.py` automatically after PostgreSQL is healthy. Verify:
+
+```powershell
+curl http://localhost:5000/health
+```
+
+Expected: `{"status":"healthy"}`
+
+### Step-by-step (explicit database init)
+
+```powershell
+docker compose up -d db
+docker compose run --rm app python init_db.py
+docker compose up app
+```
+
+### Stop containers
+
+```powershell
+docker compose down
+```
+
+### Reset development database
+
+Removes the PostgreSQL volume and all container data:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+### Development-only credentials
+
+`docker-compose.yml` uses **DEVELOPMENT-ONLY EXAMPLE CREDENTIALS** (override via environment variables or `.env`; defaults such as `vulnbank-dev-password` and `docker-dev-jwt-secret-not-for-production-use`). **Do not use these in production.** PostgreSQL is not exposed to the host — only the app port `5000` is published. See [security/deployment-security.md](security/deployment-security.md).
+
+See [security/container-security.md](security/container-security.md) for container security decisions.
+
 ## Run tests
 
 ```powershell
 pytest
 ```
 
-Tests use an isolated in-memory SQLite database and a test JWT secret, so they do not require PostgreSQL or real credentials.
+The suite currently contains **125 tests** (functional, security regression, and audit-logging coverage). Tests use an isolated in-memory SQLite database and a test JWT secret, so they do not require PostgreSQL or real credentials.
+
+## DevSecOps / CI Security
+
+Every push to `vulnerable-lab` and every pull request targeting `vulnerable-lab` triggers the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline is designed to catch security regressions before merge:
+
+| Job | Tool | Purpose |
+|-----|------|---------|
+| Python Test Suite | pytest | Run the full test suite, including vulnerability remediation regression tests |
+| SAST (Bandit) | Bandit | Static analysis of `app/` for common Python security issues |
+| Dependency Vulnerability Scan | pip-audit | Check declared dependencies in `requirements.txt` against known CVEs |
+| Secret Scanning | Gitleaks | Detect accidentally committed credentials or secrets |
+| DAST | OWASP ZAP | Dynamic scan of the running application on localhost plus authenticated regression checks |
+| Container Scan | Trivy | Blocks **fixable** HIGH/CRITICAL vulnerabilities in the built Docker image |
+| SBOM | Syft (Anchore SBOM Action) | Generates and validates a CycloneDX inventory from the built container image |
+| IaC / configuration scanning | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment settings |
+
+The workflow itself is hardened for CI/CD security: least-privilege `GITHUB_TOKEN` permissions, immutable third-party action SHA pinning, checkout credential minimisation, concurrency cancellation, and job timeouts. See [security/cicd-security.md](security/cicd-security.md).
+
+Structured **security audit logging** (JSON events, request correlation IDs) is implemented in the application and verified by the existing pytest gate. See [security/security-logging.md](security/security-logging.md).
+
+See [security/deployment-security.md](security/deployment-security.md) for Docker/Compose hardening and Checkov scope.
+
+See [security/supply-chain-security.md](security/supply-chain-security.md) for SBOM purpose, CI flow, and limitations.
+
+Run the same checks locally:
+
+```powershell
+pip install -r requirements-dev.txt
+pytest -v
+bandit -r app/ -ll
+pip-audit -r requirements.txt
+checkov -f Dockerfile --framework dockerfile --compact
+checkov -f docker-compose.yml --framework yaml --compact
+```
+
+DAST requires Docker for the ZAP scan. See [security/dast/README.md](security/dast/README.md) for local instructions.
+
+## Pull Request Security Gate
+
+VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab` branch. The GitHub Actions workflow in `.github/workflows/security.yml` runs automatically on:
+
+- **Pushes** to `vulnerable-lab`
+- **Pull requests** targeting `vulnerable-lab`
+
+Each pull request should pass all eight security checks before it is considered approved for merge:
+
+| Check | Tool | What it verifies |
+|-------|------|------------------|
+| PR Security Gate — Test Suite (pytest) | pytest | Functional behaviour, security regression, and audit-logging tests |
+| PR Security Gate — SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
+| PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
+| PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
+| PR Security Gate — DAST (OWASP ZAP) | OWASP ZAP | Dynamic scan of running localhost app and authenticated remediation checks |
+| PR Security Gate — Container Scan (Trivy) | Trivy | Blocks fixable HIGH/CRITICAL container vulnerabilities |
+| PR Security Gate — SBOM (Syft) | Syft | Builds the container image, generates a CycloneDX SBOM with Syft, validates the inventory, and retains it as a CI artifact |
+| PR Security Gate — IaC Scan (Checkov) | Checkov | Scans `Dockerfile` and `docker-compose.yml` for insecure deployment/configuration settings |
+
+If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
+
+### Enforcing the gate with branch protection
+
+The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all eight **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
+
+Until branch protection is enabled, checks run and report results but GitHub may still allow a merge when checks fail.
+
+## Security policy and documentation
+
+VulnBank documents its security governance alongside technical controls:
+
+| Document | Purpose |
+|----------|---------|
+| [security/README.md](security/README.md) | Central security documentation index |
+| [security/threat-model.md](security/threat-model.md) | STRIDE-style threat model (assets, boundaries, residual risks) |
+| [security/architecture.md](security/architecture.md) | Runtime and DevSecOps architecture diagrams |
+| [security/security-journey.md](security/security-journey.md) | End-to-end security engineering lifecycle narrative |
+| [security/control-matrix.md](security/control-matrix.md) | Risk-to-control mapping with CI enforcement |
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting, responsible disclosure, and branch protection |
+| [security/dependency-management.md](security/dependency-management.md) | Dependency scanning with pip-audit and upgrade workflow |
+| [security/supply-chain-security.md](security/supply-chain-security.md) | SBOM generation (Syft/CycloneDX), supply-chain controls, and CI artifacts |
+| [security/security-logging.md](security/security-logging.md) | Structured security audit logging, request IDs, and sensitive-data policy |
+| [security/deployment-security.md](security/deployment-security.md) | Docker/Compose hardening and Checkov IaC scanning |
+| [security/cicd-security.md](security/cicd-security.md) | GitHub Actions pipeline hardening and Dependabot strategy |
+| [security/assessment.md](security/assessment.md) | Step 7 application security assessment (historical snapshot) |
+| [security/remediation.md](security/remediation.md) | Step 8 vulnerability remediation summary |
 
 ## Authentication
 
@@ -225,7 +384,9 @@ Authorization: Bearer <access_token>
 
 Returns all transactions where the account is either the source or destination. Only the account owner can access this endpoint.
 
-## Security design (Steps 4–5)
+## Security design
+
+Baseline secure patterns (Steps 1–5):
 
 - Passwords hashed with Werkzeug before storage
 - JWT signed with `HS256` using `JWT_SECRET_KEY` from environment
@@ -240,7 +401,7 @@ Returns all transactions where the account is either the source or destination. 
 - Database transactions with row locking for transfer atomicity
 - Generic error responses (no stack traces exposed to clients)
 
-Intentional vulnerabilities (IDOR, broken auth, SQL injection, etc.) will be added in later steps for security testing demonstrations.
+Lab history (Steps 6–8): four intentional vulnerabilities were introduced on `vulnerable-lab`, documented in [security/vulnerabilities/](security/vulnerabilities/) and [security/findings/](security/findings/), then remediated. Regression tests in `tests/test_vulnerabilities.py` prevent reintroduction. See [security/remediation.md](security/remediation.md) and [security/threat-model.md](security/threat-model.md).
 
 ## Validation rules
 

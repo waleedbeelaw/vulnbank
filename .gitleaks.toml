@@ -1,0 +1,5 @@
+# Allow known-safe placeholder values in example configuration files.
+[allowlist]
+paths = [
+  '''\.env\.example$''',
+]
