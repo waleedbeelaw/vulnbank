@@ -19,7 +19,50 @@ VulnBank is an **educational Application Security / DevSecOps portfolio project*
 | `main` | Secure baseline reference |
 | `vulnerable-lab` | Full lab history: vulnerability introduction → assessment → remediation → CI security gates |
 
-Changes to `vulnerable-lab` are expected to pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md).
+Changes to `vulnerable-lab` should pass the GitHub Actions **Security Pipeline** (pytest, Bandit, pip-audit, Gitleaks) before merge. See [README.md](README.md#pull-request-security-gate) and [security/README.md](security/README.md).
+
+## Branch Protection and Security Gates
+
+VulnBank is designed to demonstrate a **security-gated pull request workflow** on the `vulnerable-lab` branch. The CI pipeline in `.github/workflows/security.yml` runs four jobs on every push and pull request targeting `vulnerable-lab`. When branch protection is configured, these jobs become **required status checks** that must pass before GitHub allows a merge.
+
+### Required status checks (job names)
+
+Repository administrators should require these exact GitHub Actions check names:
+
+| Status check name |
+|-------------------|
+| PR Security Gate — Test Suite (pytest) |
+| PR Security Gate — SAST (Bandit) |
+| PR Security Gate — SCA (pip-audit) |
+| PR Security Gate — Secret Scan (Gitleaks) |
+
+These names match the `name:` fields defined in `.github/workflows/security.yml`. After the workflow has run at least once on the branch, they appear under **Settings → Branches → Branch protection rules → Require status checks to pass**.
+
+### Recommended configuration
+
+The following settings are **recommended** for `vulnerable-lab` in **Settings → Branches → Add branch protection rule** (or edit an existing rule):
+
+| Setting | Recommendation |
+|---------|----------------|
+| **Require a pull request before merging** | Enabled — all changes enter through reviewable PRs |
+| **Require status checks to pass before merging** | Enabled — select all four **PR Security Gate** checks listed above |
+| **Require branches to be up to date before merging** | Enabled (recommended) — ensures checks ran against the latest base branch |
+| **Do not merge when checks fail** | Implicit when required checks are configured; a failing Security Pipeline must block merge |
+| **Restrict who can push to matching branches** | Enabled where appropriate — limits direct pushes that bypass PR workflow |
+| **Allow force pushes** | Disabled — prevents rewriting history to skip failed checks |
+| **Allow deletions** | Disabled — prevents accidental branch removal |
+
+### Currently configured
+
+Branch protection is a **GitHub repository setting** configured by administrators in the GitHub web UI. It is **not** defined in this repository's source code.
+
+**This documentation does not assert that branch protection is currently enabled.** To verify the live configuration, a repository administrator should review **Settings → Branches** on GitHub.
+
+Until branch protection is enabled:
+
+- The Security Pipeline still runs and reports pass/fail on pull requests
+- A merge may remain technically possible even when checks fail
+- Enabling the recommended settings above closes that gap and enforces the security gate at the platform level
 
 ## Reporting a security vulnerability
 
@@ -67,7 +110,7 @@ This project follows a documented security lifecycle:
 1. **Assessment** — findings recorded under `security/findings/` and summarised in `security/assessment.md`
 2. **Remediation** — code fixes with root-cause changes, documented in `security/remediation.md` and per-finding reports
 3. **Verification** — pytest regression tests in `tests/test_vulnerabilities.py` and the main test suite
-4. **CI enforcement** — `.github/workflows/security.yml` blocks merge when checks fail
+4. **CI enforcement** — `.github/workflows/security.yml` runs security checks on every PR; with branch protection enabled, failing checks block merge (see [Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates))
 
 For dependency vulnerabilities, see [security/dependency-management.md](security/dependency-management.md).
 

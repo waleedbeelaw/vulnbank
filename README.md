@@ -103,23 +103,27 @@ pip-audit -r requirements.txt
 
 ## Pull Request Security Gate
 
-The `vulnerable-lab` branch is protected by the GitHub Actions workflow in `.github/workflows/security.yml`. The pipeline runs automatically on:
+VulnBank uses a **security-gated pull request workflow** on the `vulnerable-lab` branch. The GitHub Actions workflow in `.github/workflows/security.yml` runs automatically on:
 
 - **Pushes** to `vulnerable-lab`
 - **Pull requests** targeting `vulnerable-lab`
 
-Each pull request must pass all four security checks before it should be considered approved for merge:
+Each pull request should pass all four security checks before it is considered approved for merge:
 
 | Check | Tool | What it verifies |
 |-------|------|------------------|
-| Test Suite | pytest | Functional behaviour and security regression tests (107 tests) |
-| SAST | Bandit | Python source in `app/` for common security anti-patterns |
-| SCA | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
-| Secret Scan | Gitleaks | Repository history for accidentally committed credentials |
+| PR Security Gate — Test Suite (pytest) | pytest | Functional behaviour and security regression tests (107 tests) |
+| PR Security Gate — SAST (Bandit) | Bandit | Python source in `app/` for common security anti-patterns |
+| PR Security Gate — SCA (pip-audit) | pip-audit | Declared dependencies in `requirements.txt` against known CVEs |
+| PR Security Gate — Secret Scan (Gitleaks) | Gitleaks | Repository history for accidentally committed credentials |
 
 If any check fails, the workflow fails and the pull request is **not** security-approved. Review the failing job in the GitHub Actions tab, fix the issue, and push again.
 
-To enforce this in GitHub, enable branch protection on `vulnerable-lab` and require the four **PR Security Gate** status checks to pass before merging.
+### Enforcing the gate with branch protection
+
+The CI pipeline reports status on pull requests, but **merge blocking requires branch protection** configured by a repository administrator in GitHub (**Settings → Branches**). See [SECURITY.md — Branch Protection and Security Gates](SECURITY.md#branch-protection-and-security-gates) for the recommended rule: require a pull request, require all four **PR Security Gate** status checks, keep branches up to date, and restrict direct pushes where appropriate.
+
+Until branch protection is enabled, checks run and report results but GitHub may still allow a merge when checks fail.
 
 ## Security policy and documentation
 
