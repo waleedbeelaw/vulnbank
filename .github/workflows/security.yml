@@ -199,3 +199,38 @@ jobs:
           exit-code: "1"
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+
+  # ---------------------------------------------------------------------------
+  # 7. SBOM — container software inventory (Syft / CycloneDX)
+  # ---------------------------------------------------------------------------
+  sbom:
+    name: PR Security Gate — SBOM (Syft)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Check out pull request code
+        uses: actions/checkout@v4
+
+      - name: Build VulnBank Docker image for SBOM
+        run: docker build -t vulnbank:sbom .
+
+      - name: Generate CycloneDX SBOM from container image with Syft
+        uses: anchore/sbom-action@v0.24.0
+        with:
+          image: vulnbank:sbom
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Validate CycloneDX SBOM structure
+        run: python security/sbom/validate_sbom.py sbom.cdx.json
+
+      - name: Upload CycloneDX SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnbank-sbom-cyclonedx
+          path: sbom.cdx.json
+          retention-days: 30

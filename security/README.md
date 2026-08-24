@@ -25,6 +25,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 | [../SECURITY.md](../SECURITY.md) | Security policy — reporting, disclosure, scope |
 | [dependency-management.md](dependency-management.md) | Dependency scanning with pip-audit |
 | [container-security.md](container-security.md) | Docker container security decisions |
+| [supply-chain-security.md](supply-chain-security.md) | SBOM generation, supply-chain inventory, and CI artifact retention |
 | [dast/README.md](dast/README.md) | Dynamic application security testing with OWASP ZAP |
 | [assessment.md](assessment.md) | Step 7 AppSec assessment summary |
 | [remediation.md](remediation.md) | Step 8 remediation summary (all findings **Remediated**) |
@@ -34,7 +35,7 @@ Each phase is preserved in Git history on the `vulnerable-lab` branch so reviewe
 
 ## CI security gates
 
-Pull requests targeting `vulnerable-lab` must pass six checks defined in [`.github/workflows/security.yml`](../.github/workflows/security.yml):
+Pull requests targeting `vulnerable-lab` must pass seven checks defined in [`.github/workflows/security.yml`](../.github/workflows/security.yml):
 
 | Gate | Tool |
 |------|------|
@@ -44,6 +45,7 @@ Pull requests targeting `vulnerable-lab` must pass six checks defined in [`.gith
 | Secret Scan | Gitleaks |
 | DAST | OWASP ZAP + `security/dast/regression_checks.py` |
 | Container Scan | Trivy |
+| SBOM | Syft (CycloneDX container inventory) |
 
 See [README.md — Pull Request Security Gate](../README.md#pull-request-security-gate).
 

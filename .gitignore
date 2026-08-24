@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated supply-chain artifacts (CI retains point-in-time SBOMs)
+sbom.cdx.json
