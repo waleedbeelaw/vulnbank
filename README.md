@@ -2,7 +2,7 @@
 
 VulnBank is an educational **Application Security / DevSecOps portfolio project** built around a realistic fintech REST API (Flask, PostgreSQL, JWT). It is **not** a production banking product - it exists to show how security engineering is applied across the full software lifecycle.
 
-**Why it exists:** The project walks from a secure baseline through a deliberately vulnerable lab, structured assessment, root-cause remediation, automated regression testing, and layered CI security gates - the same narrative a security engineer would tell in an interview or code review.
+The project walks from a secure baseline through a deliberately vulnerable lab, structured assessment, root-cause remediation, automated regression testing, and layered CI security gates.
 
 **Current state (`vulnerable-lab`):** Four intentional lab vulnerabilities (IDOR, SQL injection, stored XSS, business-logic bypass) were introduced, assessed, and **remediated**. The codebase is protected by **125 pytest tests** and **eight required PR security gates**.
 
